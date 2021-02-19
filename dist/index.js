@@ -14,31 +14,60 @@ var axios = __nccwpck_require__(257);
 // CONCATENATED MODULE: ./steadybitAPI.js
 
 
-
-
 class SteadybitHttpAPI {
     constructor(baseURL, apiAccessToken) {
         this.baseURL = baseURL;
         this.apiAccessToken = apiAccessToken;
     }
 
-    post(uri, data) {
+    postURI(uri, data) {
         return axios.post(`${this.baseURL}/api/${uri}`, data, { headers: { 'Authorization': `accessToken ${this.apiAccessToken}` } });
     }
 
-    get(uri) {
-        return axios.get(`${this.baseURL}/api/${uri}`, { headers: { 'Authorization': `accessToken ${this.apiAccessToken}` } });
+    getURL(url) {
+        return axios.get(url, { headers: { 'Authorization': `accessToken ${this.apiAccessToken}` } });
     }
 }
 
 class SteadybitAPI {
     constructor(baseURL, apiAccessToken) {
-        this.httpApi = new SteadybitHttpAPI(baseURL, apiAccessToken);
+        this.api = new SteadybitHttpAPI(baseURL, apiAccessToken);
     }
 
-    executeExperiment(experimentKey) {
-        return this.httpApi.post(`experiments/${experimentKey}/execute`);
+    executeExperiment(experimentKey, expectedState) {
+        return new Promise((resolve, reject) => {
+            this.api.postURI(`experiments/${experimentKey}/execute`)
+                .then(value => {
+                    if (expectedState !== undefined) {
+                        console.log(`Experiment ${experimentKey} execution created, checking status...`);
+                        return this.awaitExecutionState(value.headers.location, expectedState)
+                            .then(resolve)
+                            .catch(reject);
+                    }
+                }).catch(reject);
+        });
     }
+
+    awaitExecutionState(url, expectedState) {
+        return new Promise((resolve, reject) => {
+            this.api.getURL(url)
+                .then(response => {
+                    const execution = response.data;
+                    if (execution.state === expectedState) {
+                        console.log(`Execution ${execution.id} in expected state ${execution.state}`);
+                        resolve('Success');
+                    } else {
+                        console.log(`Execution ${execution.id} in state ${execution.state}, expecting to be in ${expectedState} ${execution.estimatedEnd ? `(estimated end ${execution.estimatedEnd})` : ''}`);
+                        if (execution.ended) {
+                            reject('Failed');
+                        } else {
+                            setTimeout(() => this.awaitExecutionState(url, expectedState).then(resolve).catch(reject), 1000);
+                        }
+                    }
+                }).catch(reject);
+        });
+    }
+
 }
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(939);
@@ -47,17 +76,17 @@ var core = __nccwpck_require__(939);
 
 
 
-try {
+function run() {
     const baseURL = core.getInput('baseURL');
     const apiAccessToken = core.getInput('apiAccessToken');
     const experimentKey = core.getInput('experimentKey');
+    const expectedState = core.getInput('expectedState');
 
     const steadybitAPI = new SteadybitAPI(baseURL, apiAccessToken);
-    steadybitAPI.executeExperiment(experimentKey)
-        .catch(reason => core.setFailed(reason));
-} catch (error) {
-    core.setFailed(error.message);
+    steadybitAPI.executeExperiment(experimentKey, expectedState).catch(core.setFailed);
 }
+
+run();
 
 /***/ }),
 
