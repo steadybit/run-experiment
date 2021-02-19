@@ -12,9 +12,13 @@ inputs:
     description: 'Key of the experiment to be executed'
     required: true
   expectedState:
-    description: 'The state the experiment should be to mark it as successful in this Action'
+    description: 'The expected state of the experiment to mark Action successful'
     required: false
     default: 'COMPLETED'
+  expectedFailureReason:
+    description: 'The epxected failure reason of the experiment to mark Action successful'
+    required: false
+    default: ''
 runs:
   using: 'node12'
   main: 'dist/index.js'
