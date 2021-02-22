@@ -20,6 +20,9 @@ jobs:
         # install manually until we use Node.js >= v15
         run: npm install -g npm@7.5.2
 
+      - name: Install NCC
+        run: npm install -g @vercel/ncc@0.27.0
+
       - name: Cache NPM dependencies
         uses: actions/cache@v1
         with:
