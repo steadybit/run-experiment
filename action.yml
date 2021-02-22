@@ -1,24 +1,24 @@
-name: 'Run Experiment'
-description: 'Runs an experiment and checks the status of the experiment afterwards'
+name: "Run Experiment"
+description: "Runs an experiment and checks the status of the experiment afterwards"
 inputs:
   apiAccessToken:
-    description: 'Access Token to be used for accessing steadybit API'
+    description: "Access Token to be used for accessing steadybit API"
     required: true
   baseURL:
-    description: 'Base URL of steadybit'
+    description: "Base URL of steadybit"
     required: false
-    default: 'https://platform.steadybit.io'
+    default: "https://platform.steadybit.io"
   experimentKey:
-    description: 'Key of the experiment to be executed'
+    description: "Key of the experiment to be executed"
     required: true
   expectedState:
-    description: 'The expected state of the experiment to mark Action successful'
+    description: "The expected state of the experiment to mark Action successful"
     required: false
-    default: 'COMPLETED'
+    default: "COMPLETED"
   expectedFailureReason:
-    description: 'The epxected failure reason of the experiment to mark Action successful'
+    description: "The epxected failure reason of the experiment to mark Action successful"
     required: false
-    default: ''
+    default: ""
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+  using: "node12"
+  main: "dist/index.js"
