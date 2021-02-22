@@ -39,7 +39,7 @@ export class SteadybitAPI {
             this.api.getURL(url)
                 .then(response => {
                     const execution = response.data;
-                    if (execution.state === expectedState) {
+                    if (execution.attacksStarted && execution.state === expectedState) {
                         console.log(`Execution ${execution.id} in expected state ${execution.state}`);
                         if (expectedFailureReason !== '') {
                             if (expectedFailureReason === execution.failureReason) {

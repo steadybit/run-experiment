@@ -12,7 +12,7 @@ inputs:
     description: "Key of the experiment to be executed"
     required: true
   expectedState:
-    description: "The expected state of the experiment to mark Action successful"
+    description: "The expected state of the experiment after attacks started to mark Action successful"
     required: false
     default: "COMPLETED"
   expectedFailureReason:
