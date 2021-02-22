@@ -22,7 +22,7 @@ The expected state of the experiment after attacks started to mark Action succes
 
 ### `expectedFailureReason`
 
-The epxected failure reason of the experiment to mark Action successful. Default`""`
+The expected failure reason of the experiment to mark Action successful. Default`""`
 
 
 ## Outputs

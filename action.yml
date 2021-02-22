@@ -16,7 +16,7 @@ inputs:
     required: false
     default: "COMPLETED"
   expectedFailureReason:
-    description: "The epxected failure reason of the experiment to mark Action successful"
+    description: "The expected failure reason of the experiment to mark Action successful"
     required: false
     default: ""
 runs:
