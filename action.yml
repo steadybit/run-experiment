@@ -1,5 +1,5 @@
 name: "Run Experiment"
-description: "Runs an experiment and checks the status of the experiment afterwards"
+description: "Runs an experiment and checks the status of the experiment while executing"
 inputs:
   apiAccessToken:
     description: "Access Token to be used for accessing steadybit API"

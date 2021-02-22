@@ -1,6 +1,6 @@
 # Run Experiment action
 
-This action executes a steadybit chaos experiment and checks the status afterwards
+Runs an experiment and checks the status of the experiment while executing
 
 ## Inputs
 
