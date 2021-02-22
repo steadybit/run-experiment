@@ -1,5 +1,4 @@
 FROM node
-WORKDIR /usr/src/action
 
 COPY package*.json ./
 RUN npm install
