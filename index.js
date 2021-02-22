@@ -10,7 +10,10 @@ function run() {
     const expectedFailureReason = core.getInput('expectedFailureReason');
 
     const steadybitAPI = new SteadybitAPI(baseURL, apiAccessToken);
-    steadybitAPI.executeExperiment(experimentKey, expectedState, expectedFailureReason).catch(core.setFailed);
+    steadybitAPI.executeExperiment(experimentKey, expectedState, expectedFailureReason)
+        .catch(reason => {
+            core.setFailed(`Experiment ${experimentKey} failed: ${reason}` );
+        });
 }
 
 run();

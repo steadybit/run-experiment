@@ -47,7 +47,7 @@ export class SteadybitAPI {
                                 resolve('Success, state and failureReason match');
                             } else {
                                 console.log(`Execution ${execution.id} has different failure reason (expected ${expectedFailureReason}, actual ${execution.failureReason})`);
-                                reject('Failed, state matches but failureReason differ')
+                                reject(`State matches but failureReason differ: expected ${expectedFailureReason}, actual ${execution.failureReason}`)
                             }
                         } else {
                             resolve('Success, state match');
@@ -55,7 +55,7 @@ export class SteadybitAPI {
                     } else {
                         console.log(`Execution ${execution.id} in state ${execution.state}, expecting to be in ${expectedState} ${execution.estimatedEnd ? `(estimated end ${execution.estimatedEnd})` : ''}`);
                         if (execution.ended) {
-                            reject('Failed, execution ended with different state');
+                            reject(`Execution ended with different state: expected ${expectedState}, actual ${execution.state}` );
                         } else {
                             setTimeout(() => this.awaitExecutionState(url, expectedState, expectedFailureReason)
                                 .then(resolve)
