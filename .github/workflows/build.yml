@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+
+jobs:
+  build:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js v14.15.4
+        uses: actions/setup-node@v1
+        with:
+          node-version: v14.15.4
+
+      - name: Install npm 7
+        # install manually until we use Node.js >= v15
+        run: npm install -g npm@7.5.2
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: Build
+        run: ncc build index.js --license licenses.txt
