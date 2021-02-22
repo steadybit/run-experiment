@@ -1,6 +1,7 @@
 FROM node
+WORKDIR /usr/src/action
 
-COPY dist/index.js /index.js
-COPY run.sh /run.sh
-
-ENTRYPOINT ["/run.sh"]
+COPY package*.json ./
+RUN npm install
+COPY . .
+CMD [ "node", "index.js" ]
