@@ -18,7 +18,7 @@ Base URL of steadybit. Default`"https://platform.steadybit.io"`
 
 ### `expectedState`
 
-The expected state of the experiment to mark Action successful. Default`"COMPLETED"`
+The expected state of the experiment after attacks started to mark Action successful. Default`"COMPLETED"`
 
 ### `expectedFailureReason`
 
