@@ -40,9 +40,9 @@ export class SteadybitAPI {
                 .then(response => {
                     const execution = response.data;
                     if (execution.state === expectedState) {
-                        this.executionEndedInExpectedState(execution, expectedFailureReason, resolve, reject);
+                        this.#executionEndedInExpectedState(execution, expectedFailureReason, resolve, reject);
                     } else {
-                        this.executionEndedInDifferentState(execution, expectedState, reject, url, expectedFailureReason, resolve);
+                        this.#executionEndedInDifferentState(execution, expectedState, reject, url, expectedFailureReason, resolve);
                     }
                 }).catch(reject);
         });
