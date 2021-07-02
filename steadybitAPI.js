@@ -35,6 +35,7 @@ export class SteadybitAPI {
             );
             return this.awaitExecutionState(
               value.headers.location,
+              true,
               expectedState,
               expectedFailureReason
             )
@@ -57,6 +58,7 @@ export class SteadybitAPI {
             );
             return this.awaitExecutionState(
               value.headers.location,
+              false,
               expectedState,
               expectedFailureReason
             )
@@ -68,7 +70,7 @@ export class SteadybitAPI {
     });
   }
 
-  awaitExecutionState(url, expectedState, expectedFailureReason) {
+  awaitExecutionState(url, isExperiment, expectedState, expectedFailureReason) {
     return new Promise((resolve, reject) => {
       this.api
         .getURL(url)
@@ -77,6 +79,7 @@ export class SteadybitAPI {
           if (execution.state === expectedState) {
             this.#executionEndedInExpectedState(
               execution,
+              isExperiment,
               expectedFailureReason,
               resolve,
               reject
@@ -98,13 +101,14 @@ export class SteadybitAPI {
 
   #executionEndedInExpectedState(
     execution,
+    isExperiment,
     expectedFailureReason,
     resolve,
     reject
   ) {
-    if (execution.attacksStarted) {
+    if (execution.attacksStarted || !isExperiment) {
       console.log(
-        `Execution ${execution.id} in expected state ${execution.state}`
+        `Execution ended ${execution.id} in expected state ${execution.state}`
       );
       if (expectedFailureReason === "") {
         resolve("Success, state matches");
