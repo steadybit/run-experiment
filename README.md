@@ -12,9 +12,9 @@ Runs an experiment and checks the status of the experiment while executing
 
 Base URL of steadybit. Default`"https://platform.steadybit.io"`
 
-### `experimentKey`
+### `experimentKey` or `scenarioKey`
 
-**Required** Key of the experiment to be executed.
+**Required** Key of the experiment or scenario to be executed - one of them is required.
 
 ### `expectedState`
 
@@ -24,13 +24,11 @@ The expected state of the experiment after attacks started to mark Action succes
 
 The expected failure reason of the experiment to mark Action successful. Default`""`
 
-
 ## Outputs
 
 None for now
 
 ## Example usage
-
 
 ```
 - name: Run Experiment (EXPERIMENT-1)

@@ -10,7 +10,10 @@ inputs:
     default: "https://platform.steadybit.io"
   experimentKey:
     description: "Key of the experiment to be executed"
-    required: true
+    required: false
+  scenarioKey:
+    description: "Key of the scenario to be executed"
+    required: false
   expectedState:
     description: "The expected state of the experiment after attacks started to mark Action successful"
     required: false
