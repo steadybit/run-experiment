@@ -87,6 +87,7 @@ export class SteadybitAPI {
           } else {
             this.#executionEndedInDifferentState(
               execution,
+              isExperiment,
               expectedState,
               reject,
               url,
@@ -134,6 +135,7 @@ export class SteadybitAPI {
 
   #executionEndedInDifferentState(
     execution,
+    isExperiment,
     expectedState,
     reject,
     url,
@@ -156,7 +158,12 @@ export class SteadybitAPI {
     } else {
       setTimeout(
         () =>
-          this.awaitExecutionState(url, expectedState, expectedFailureReason)
+          this.awaitExecutionState(
+            url,
+            isExperiment,
+            expectedState,
+            expectedFailureReason
+          )
             .then(resolve)
             .catch(reject),
         1000
