@@ -153,7 +153,13 @@ export class SteadybitAPI {
     );
     if (execution.ended) {
       reject(
-        `Execution ended with different state: expected ${expectedState}, actual ${execution.state}`
+        `Execution ended with different state: expected ${expectedState}, actual ${
+          execution.state
+        }${
+          execution.failureReason
+            ? ` - failure reason: ${execution.failureReason}`
+            : ""
+        }`
       );
     } else {
       setTimeout(
