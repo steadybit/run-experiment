@@ -35,7 +35,6 @@ export class SteadybitAPI {
             );
             return this.awaitExecutionState(
               value.headers.location,
-              true,
               expectedState,
               expectedFailureReason
             )
@@ -58,7 +57,6 @@ export class SteadybitAPI {
             );
             return this.awaitExecutionState(
               value.headers.location,
-              false,
               expectedState,
               expectedFailureReason
             )
@@ -70,7 +68,7 @@ export class SteadybitAPI {
     });
   }
 
-  awaitExecutionState(url, isExperiment, expectedState, expectedFailureReason) {
+  awaitExecutionState(url, expectedState, expectedFailureReason) {
     return new Promise((resolve, reject) => {
       this.api
         .getURL(url)
@@ -79,7 +77,6 @@ export class SteadybitAPI {
           if (execution.state === expectedState) {
             this.#executionEndedInExpectedState(
               execution,
-              isExperiment,
               expectedFailureReason,
               resolve,
               reject
@@ -87,7 +84,6 @@ export class SteadybitAPI {
           } else {
             this.#executionEndedInDifferentState(
               execution,
-              isExperiment,
               expectedState,
               reject,
               url,
@@ -102,40 +98,32 @@ export class SteadybitAPI {
 
   #executionEndedInExpectedState(
     execution,
-    isExperiment,
     expectedFailureReason,
     resolve,
     reject
   ) {
-    if (execution.attacksStarted || !isExperiment) {
+    console.log(
+      `Execution ended ${execution.id} in expected state ${execution.state}`
+    );
+    if (expectedFailureReason === "") {
+      resolve("Success, state matches");
+    } else if (expectedFailureReason === execution.failureReason) {
       console.log(
-        `Execution ended ${execution.id} in expected state ${execution.state}`
+        `Execution ${execution.id} has expected failure reason ${execution.failureReason}`
       );
-      if (expectedFailureReason === "") {
-        resolve("Success, state matches");
-      } else if (expectedFailureReason === execution.failureReason) {
-        console.log(
-          `Execution ${execution.id} has expected failure reason ${execution.failureReason}`
-        );
-        resolve("Success, state and failureReason match");
-      } else {
-        console.log(
-          `Execution ${execution.id} has different failure reason (expected ${expectedFailureReason}, actual ${execution.failureReason})`
-        );
-        reject(
-          `State matches but failureReason differ: expected ${expectedFailureReason}, actual ${execution.failureReason}`
-        );
-      }
+      resolve("Success, state and failureReason match");
     } else {
+      console.log(
+        `Execution ${execution.id} has different failure reason (expected ${expectedFailureReason}, actual ${execution.failureReason})`
+      );
       reject(
-        `Execution ended in expected state (${execution.state}) already before any attack was performed`
+        `State matches but failureReason differ: expected ${expectedFailureReason}, actual ${execution.failureReason}`
       );
     }
   }
 
   #executionEndedInDifferentState(
     execution,
-    isExperiment,
     expectedState,
     reject,
     url,
@@ -164,12 +152,7 @@ export class SteadybitAPI {
     } else {
       setTimeout(
         () =>
-          this.awaitExecutionState(
-            url,
-            isExperiment,
-            expectedState,
-            expectedFailureReason
-          )
+          this.awaitExecutionState(url, expectedState, expectedFailureReason)
             .then(resolve)
             .catch(reject),
         1000
