@@ -24,36 +24,14 @@ export class SteadybitAPI {
     this.api = new SteadybitHttpAPI(baseURL, apiAccessToken);
   }
 
-  executeExperiment(experimentKey, expectedState, expectedFailureReason) {
+  runExperiment(experimentKey, expectedState, expectedFailureReason) {
     return new Promise((resolve, reject) => {
       this.api
-        .postURI(`experiments/${experimentKey}/execute`)
+        .postURI(`scenarios/${experimentKey}/run`)
         .then((value) => {
           if (expectedState !== undefined) {
             console.log(
-              `Experiment ${experimentKey} execution created, checking status...`
-            );
-            return this.awaitExecutionState(
-              value.headers.location,
-              expectedState,
-              expectedFailureReason
-            )
-              .then(resolve)
-              .catch(reject);
-          }
-        })
-        .catch(reject);
-    });
-  }
-
-  executeScenario(scenarioKey, expectedState, expectedFailureReason) {
-    return new Promise((resolve, reject) => {
-      this.api
-        .postURI(`scenarios/${scenarioKey}/run`)
-        .then((value) => {
-          if (expectedState !== undefined) {
-            console.log(
-              `Scenario ${scenarioKey} execution created, checking status...`
+              `Experiment ${experimentKey} is running, checking status...`
             );
             return this.awaitExecutionState(
               value.headers.location,
