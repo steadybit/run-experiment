@@ -58,7 +58,9 @@ export class SteadybitAPI {
                   experimentKey,
                   expectedState,
                   expectedFailureReason
-                ),
+                )
+                  .then(resolve)
+                  .catch(reject),
               30000
             );
           } else {
