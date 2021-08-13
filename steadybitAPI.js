@@ -42,7 +42,29 @@ export class SteadybitAPI {
               .catch(reject);
           }
         })
-        .catch(reject);
+        .catch((reason) => {
+          const response = reason.response.data;
+          if (
+            response.status === 422 &&
+            response.title &&
+            response.title.match(/Another.*running/) !== null
+          ) {
+            console.log(
+              "Another experiment is running, retrying in 30 seconds"
+            );
+            setTimeout(
+              () =>
+                this.runExperiment(
+                  experimentKey,
+                  expectedState,
+                  expectedFailureReason
+                ),
+              30000
+            );
+          } else {
+            reject(reason);
+          }
+        });
     });
   }
 
