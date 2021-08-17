@@ -1,24 +1,24 @@
-name: "Run Experiment"
-description: "Runs an experiment and checks the status of the experiment while executing"
+name: 'Run Experiment'
+description: 'Runs an experiment and checks the status of the experiment while executing'
 inputs:
-  apiAccessToken:
-    description: "Access Token to be used for accessing steadybit API"
-    required: true
-  baseURL:
-    description: "Base URL of steadybit"
-    required: false
-    default: "https://platform.steadybit.io"
-  experimentKey:
-    description: "Key of the experiment to be executed"
-    required: true
-  expectedState:
-    description: "The expected state of the experiment after attacks started to mark Action successful"
-    required: false
-    default: "COMPLETED"
-  expectedFailureReason:
-    description: "The expected failure reason of the experiment to mark Action successful"
-    required: false
-    default: ""
+    apiAccessToken:
+        description: 'Access Token to be used for accessing steadybit API'
+        required: true
+    baseURL:
+        description: 'Base URL of steadybit'
+        required: false
+        default: 'https://platform.steadybit.io'
+    experimentKey:
+        description: 'Key of the experiment to be executed'
+        required: true
+    expectedState:
+        description: 'The expected state of the experiment after attacks started to mark Action successful'
+        required: false
+        default: 'COMPLETED'
+    expectedFailureReason:
+        description: 'The expected failure reason of the experiment to mark Action successful'
+        required: false
+        default: ''
 runs:
-  using: "docker"
-  image: "Dockerfile"
+    using: 'docker'
+    image: 'Dockerfile'
