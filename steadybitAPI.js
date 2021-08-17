@@ -29,10 +29,8 @@ export class SteadybitAPI {
             this.api
                 .postURI(`scenarios/${experimentKey}/run`)
                 .then((value) => {
-                    if (expectedState !== undefined) {
-                        console.log(`Experiment ${experimentKey} is running, checking status...`);
-                        return this.awaitExecutionState(value.headers.location, expectedState, expectedFailureReason).then(resolve).catch(reject);
-                    }
+                    console.log(`Experiment ${experimentKey} is running, checking status...`);
+                    return this.awaitExecutionState(value.headers.location, expectedState, expectedFailureReason).then(resolve).catch(reject);
                 })
                 .catch((reason) => {
                     const response = reason.response.data;
@@ -76,11 +74,7 @@ export class SteadybitAPI {
     }
 
     #executionEndedInDifferentState(execution, expectedState, reject, url, expectedFailureReason, resolve) {
-        console.log(
-            `Execution ${execution.id} in state ${execution.state}, expecting to be in ${expectedState} ${
-                execution.estimatedEnd ? `(estimated end ${execution.estimatedEnd})` : ''
-            }`
-        );
+        console.log(`Execution ${execution.id} in state ${execution.state}, expecting to be in ${expectedState}`);
         if (execution.ended) {
             reject(
                 `Execution ended with different state: expected ${expectedState}, actual ${execution.state}${
