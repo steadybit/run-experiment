@@ -19,9 +19,10 @@ function run() {
   const expectedState = core.getInput("expectedState");
   const expectedFailureReason = core.getInput("expectedFailureReason");
   const parallelExecution = core.getInput("parallel") === "true";
+  const maxRetries = core.getInput("maxRetries");
 
   const steadybitAPI = new SteadybitAPI(baseURL, apiAccessToken);
-  const executionPromise = steadybitAPI.runExperiment(experimentKey, expectedState, expectedFailureReason, parallelExecution);
+  const executionPromise = steadybitAPI.runExperiment(experimentKey, expectedState, expectedFailureReason, parallelExecution, maxRetries);
 
   executionPromise.catch((reason) => {
     const reasonDetails = getReasonDetails(reason);

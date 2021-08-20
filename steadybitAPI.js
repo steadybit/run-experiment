@@ -24,7 +24,7 @@ export class SteadybitAPI {
     this.api = new SteadybitHttpAPI(baseURL, apiAccessToken);
   }
 
-  runExperiment(experimentKey, expectedState, expectedFailureReason, parallel = false) {
+  runExperiment(experimentKey, expectedState, expectedFailureReason, parallel = false, retry = "3") {
     return new Promise((resolve, reject) => {
       this.api
         .postURI(`scenarios/${experimentKey}/run${parallel ? `?allowParallel=${parallel}` : ``}`)
@@ -34,9 +34,10 @@ export class SteadybitAPI {
         })
         .catch((reason) => {
           const response = reason.response.data;
-          if (response.status === 422 && response.title && response.title.match(/Another.*running/) !== null) {
+          const retryInt = parseInt(retry);
+          if (response.status === 422 && response.title && response.title.match(/Another.*running/) !== null && retryInt > 0) {
             console.log("Another experiment is running, retrying in 30 seconds");
-            setTimeout(() => this.runExperiment(experimentKey, expectedState, expectedFailureReason).then(resolve).catch(reject), 30000);
+            setTimeout(() => this.runExperiment(experimentKey, expectedState, expectedFailureReason, parallel, `${retryInt - 1}`).then(resolve).catch(reject), 30000);
           } else {
             reject(reason);
           }
