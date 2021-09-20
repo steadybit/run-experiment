@@ -8,7 +8,10 @@ class SteadybitHttpAPI {
 
     postURI(uri, data) {
         return axios.post(`${this.baseURL}/api/${uri}`, data, {
-            headers: { Authorization: `accessToken ${this.apiAccessToken}` },
+            headers: {
+                Authorization: `accessToken ${this.apiAccessToken}`,
+                'content-type': 'application/json',
+            },
         });
     }
 
