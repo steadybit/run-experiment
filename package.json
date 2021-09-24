@@ -1,29 +1,38 @@
 {
-  "name": "github-actions",
-  "version": "1.0.0",
-  "description": "",
-  "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prettier": "prettier --write ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/steadybit/github-actions.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/steadybit/github-actions/issues"
-  },
-  "homepage": "https://github.com/steadybit/github-actions#readme",
-  "dependencies": {
-    "@actions/core": "^1.2.6",
-    "axios": "^0.21.1"
-  },
-  "devDependencies": {
-    "prettier": "2.3.2"
-  }
+    "name": "run-experiment",
+    "version": "1.0.0",
+    "description": "Steadybit Run Experiment Action",
+    "main": "index.js",
+    "scripts": {
+        "lint": "eslint .",
+        "prepare": "ncc build index.js -o dist --source-map --license licenses.txt ",
+        "test": "jest",
+        "all": "npm run lint && npm run prepare && npm run test",
+        "prettier": "prettier --write ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/steadybit/run-experiment.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/steadybit/run-experiment/issues"
+    },
+    "homepage": "https://github.com/steadybit/run-experiment#readme",
+    "dependencies": {
+        "@actions/core": "^1.2.6",
+        "axios": "^0.21.1"
+    },
+    "devDependencies": {
+        "@vercel/ncc": "^0.31.1",
+        "eslint": "^7.4.0",
+        "jest": "^27.2.1",
+        "prettier": "^2.4.1"
+    },
+    "jest": {
+        "testEnvironment": "jest-environment-node",
+        "transform": {}
+    }
 }

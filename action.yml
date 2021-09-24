@@ -1,4 +1,4 @@
-name: 'Run Experiment'
+name: 'run-experiment'
 description: 'Runs an experiment and checks the status of the experiment while executing'
 inputs:
   apiAccessToken:
@@ -28,5 +28,5 @@ inputs:
     required: false
     default: '3'
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: 'node12'
+  main: 'dist/index.js'

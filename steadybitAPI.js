@@ -1,98 +1,79 @@
-import axios from 'axios';
+const axios = require('axios');
 
-class SteadybitHttpAPI {
-    constructor(baseURL, apiAccessToken) {
-        this.baseURL = baseURL;
-        this.apiAccessToken = apiAccessToken;
-    }
-
-    postURI(uri, data) {
-        return axios.post(`${this.baseURL}/api/${uri}`, data, {
-            headers: {
-                Authorization: `accessToken ${this.apiAccessToken}`,
-                'content-type': 'application/json',
-            },
-        });
-    }
-
-    getURL(url) {
-        return axios.get(url, {
-            headers: { Authorization: `accessToken ${this.apiAccessToken}` },
-        });
-    }
+async function delay(time, value) {
+    return new Promise((resolve) => {
+        setTimeout(resolve.bind(null, value), time);
+    });
 }
 
-export class SteadybitAPI {
-    constructor(baseURL, apiAccessToken) {
-        this.api = new SteadybitHttpAPI(baseURL, apiAccessToken);
-    }
+class SteadybitAPI {
+    allowParallelBackoffInterval = 30;
+    executionStateQueryInterval = 3;
 
-    runExperiment(experimentKey, expectedState, expectedFailureReason, parallel = false, retry = '3') {
-        return new Promise((resolve, reject) => {
-            this.api
-                .postURI(`scenarios/${experimentKey}/run${parallel ? `?allowParallel=${parallel}` : ``}`)
-                .then((value) => {
-                    console.log(`Experiment ${experimentKey} is running, checking status...`);
-                    return this.awaitExecutionState(value.headers.location, expectedState, expectedFailureReason).then(resolve).catch(reject);
-                })
-                .catch((reason) => {
-                    const response = reason.response.data;
-                    const retryInt = parseInt(retry);
-                    if (response.status === 422 && response.title && response.title.match(/Another.*running/) !== null && retryInt > 0) {
-                        console.log('Another experiment is running, retrying in 30 seconds');
-                        setTimeout(
-                            () =>
-                                this.runExperiment(experimentKey, expectedState, expectedFailureReason, parallel, `${retryInt - 1}`)
-                                    .then(resolve)
-                                    .catch(reject),
-                            30000
-                        );
-                    } else {
-                        reject(reason);
-                    }
-                });
+    constructor(baseURL, apiAccessToken, httpFactory = axios.create) {
+        this.http = httpFactory({
+            baseURL,
+            headers: { Authorization: `accessToken ${apiAccessToken}`, 'Content-Type': 'application/json' },
         });
     }
 
-    awaitExecutionState(url, expectedState, expectedFailureReason) {
-        return new Promise((resolve, reject) => {
-            this.api
-                .getURL(url)
-                .then((response) => {
-                    const execution = response.data;
-                    if (execution.state === expectedState) {
-                        this.#executionEndedInExpectedState(execution, expectedFailureReason, resolve, reject);
-                    } else {
-                        this.#executionEndedInDifferentState(execution, expectedState, reject, url, expectedFailureReason, resolve);
-                    }
-                })
-                .catch(reject);
-        });
-    }
-
-    #executionEndedInExpectedState(execution, expectedFailureReason, resolve, reject) {
-        console.log(`Execution ended ${execution.id} in expected state ${execution.state}`);
-        if (expectedFailureReason === '') {
-            resolve('Success, state matches');
-        } else if (expectedFailureReason === execution.failureReason) {
-            console.log(`Execution ${execution.id} has expected failure reason ${execution.failureReason}`);
-            resolve('Success, state and failureReason match');
-        } else {
-            console.log(`Execution ${execution.id} has different failure reason (expected ${expectedFailureReason}, actual ${execution.failureReason})`);
-            reject(`State matches but failureReason differ: expected ${expectedFailureReason}, actual ${execution.failureReason}`);
+    async runExperiment(experimentKey, allowParallel = false, retries = 3) {
+        try {
+            const response = await this.http.post(`/api/scenarios/${experimentKey}/run`, null, { params: { allowParallel: String(allowParallel) } });
+            return response.headers.location;
+        } catch (error) {
+            const responseBody = error.response.data;
+            if (responseBody.status === 422 && responseBody.title && responseBody.title.match(/Another.*running/) !== null && retries > 0) {
+                console.log(`Another experiment is running, retrying in ${this.allowParallelBackoffInterval} seconds.`);
+                await delay(this.allowParallelBackoffInterval * 1000);
+                return this.runExperiment(experimentKey, allowParallel, retries - 1);
+            } else {
+                throw this._getErrorFromResponse(error);
+            }
         }
     }
 
-    #executionEndedInDifferentState(execution, expectedState, reject, url, expectedFailureReason, resolve) {
-        console.log(`Execution ${execution.id} in state ${execution.state}, expecting to be in ${expectedState}`);
+    async awaitExecutionState(url, expectedState, expectedFailureReason) {
+        try {
+            const response = await this.http.get(url);
+            const execution = response.data;
+            if (execution.state === expectedState) {
+                return this._executionEndedInExpectedState(execution, expectedFailureReason);
+            } else {
+                return this._executionEndedInDifferentState(url, execution, expectedState, expectedFailureReason);
+            }
+        } catch (error) {
+            throw this._getErrorFromResponse(error);
+        }
+    }
+
+    async _executionEndedInExpectedState(execution, expectedFailureReason) {
+        if (!expectedFailureReason || expectedFailureReason === execution.failureReason) {
+            return `Execution ${execution.id} ended with '${execution.state}${execution.failureReason ? ` - ${execution.failureReason}` : ''}'.`;
+        } else {
+            throw `Execution ${execution.id} ended with '${execution.state}'. Expected failure reason '${expectedFailureReason}', but was '${execution.failureReason}'`;
+        }
+    }
+
+    async _executionEndedInDifferentState(url, execution, expectedState, expectedFailureReason) {
         if (execution.ended) {
-            reject(
-                `Execution ended with different state: expected ${expectedState}, actual ${execution.state}${
-                    execution.failureReason ? ` - failure reason: ${execution.failureReason}` : ''
-                }`
-            );
+            throw `Execution ${execution.id} ended with '${execution.state}${
+                execution.failureReason ? ` - ${execution.failureReason}` : ''
+            }' but expected '${expectedState}${expectedFailureReason ? ` - ${expectedFailureReason}` : ''}'`;
         } else {
-            setTimeout(() => this.awaitExecutionState(url, expectedState, expectedFailureReason).then(resolve).catch(reject), 1000);
+            await delay(this.executionStateQueryInterval * 1000);
+            return this.awaitExecutionState(url, expectedState, expectedFailureReason);
         }
     }
+
+    _getErrorFromResponse(error) {
+        if (error.response && error.response.data) {
+            return error.response.data.title ? error.response.data.title : JSON.stringify(error.response.data);
+        }
+        return error.toString();
+    }
 }
+
+module.exports = {
+    SteadybitAPI,
+};

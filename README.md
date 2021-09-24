@@ -32,7 +32,7 @@ None for now
 
 ```
 - name: Run Experiment (EXPERIMENT-1)
-uses: steadybit/experiment-github-actions@v1
+uses: steadybit/run-experiment@v1
 with:
   apiAccessToken: ${{ secrets.STEADYBIT_API_ACCESS_TOKEN }}
   experimentKey: 'EXPERIMENT-1'
