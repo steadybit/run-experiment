@@ -23,7 +23,7 @@
     "homepage": "https://github.com/steadybit/run-experiment#readme",
     "dependencies": {
         "@actions/core": "^1.2.6",
-        "axios": "^0.21.1"
+        "axios": "^0.22.0"
     },
     "devDependencies": {
         "@vercel/ncc": "^0.31.1",
