@@ -37,7 +37,7 @@ describe('SteadybitAPI', () => {
 
         expect(url).toBe('http://test/api/executions/123');
 
-        expect(httpMock.post).toHaveBeenCalledWith(`/api/scenarios/EX-1/run`, null, { params: { allowParallel: 'false' } });
+        expect(httpMock.post).toHaveBeenCalledWith(`/api/experiments/EX-1/execute`, null, { params: { allowParallel: 'false' } });
         expect(httpMock.post).toHaveBeenCalledTimes(3);
     });
 
