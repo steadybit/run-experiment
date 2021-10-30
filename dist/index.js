@@ -1781,7 +1781,7 @@ module.exports = function xhrAdapter(config) {
 
     // Handle timeout
     request.ontimeout = function handleTimeout() {
-      var timeoutErrorMessage = 'timeout of ' + config.timeout + 'ms exceeded';
+      var timeoutErrorMessage = config.timeout ? 'timeout of ' + config.timeout + 'ms exceeded' : 'timeout exceeded';
       var transitional = config.transitional || defaults.transitional;
       if (config.timeoutErrorMessage) {
         timeoutErrorMessage = config.timeoutErrorMessage;
@@ -2839,7 +2839,7 @@ module.exports = defaults;
 /***/ ((module) => {
 
 module.exports = {
-  "version": "0.22.0"
+  "version": "0.24.0"
 };
 
 /***/ }),
@@ -5962,8 +5962,8 @@ module.exports = require("zlib");
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-const core = __nccwpck_require__( 2186);
-const {SteadybitAPI} = __nccwpck_require__(4977);
+const core = __nccwpck_require__(2186);
+const { SteadybitAPI } = __nccwpck_require__(4977);
 
 async function run() {
     const baseURL = core.getInput('baseURL');

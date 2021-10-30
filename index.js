@@ -1,5 +1,5 @@
-const core = require( '@actions/core');
-const {SteadybitAPI} = require('./steadybitAPI.js');
+const core = require('@actions/core');
+const { SteadybitAPI } = require('./steadybitAPI.js');
 
 async function run() {
     const baseURL = core.getInput('baseURL');

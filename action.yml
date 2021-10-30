@@ -1,32 +1,32 @@
 name: 'run-experiment'
 description: 'Runs an experiment and checks the status of the experiment while executing'
 inputs:
-  apiAccessToken:
-    description: 'Access Token to be used for accessing steadybit API'
-    required: true
-  baseURL:
-    description: 'Base URL of steadybit'
-    required: false
-    default: 'https://platform.steadybit.io'
-  experimentKey:
-    description: 'Key of the experiment to be executed'
-    required: true
-  expectedState:
-    description: 'The expected state of the experiment after attacks started to mark Action successful'
-    required: false
-    default: 'COMPLETED'
-  expectedFailureReason:
-    description: 'The expected failure reason of the experiment to mark Action successful'
-    required: false
-    default: ''
-  parallel:
-    description: 'Whether the experiment should be executed although another one is already running'
-    required: false
-    default: ''
-  maxRetries:
-    description: 'How often the experiment should be retried in case another one is running (only relevant when parallel is set to false)'
-    required: false
-    default: '3'
+    apiAccessToken:
+        description: 'Access Token to be used for accessing steadybit API'
+        required: true
+    baseURL:
+        description: 'Base URL of steadybit'
+        required: false
+        default: 'https://platform.steadybit.io'
+    experimentKey:
+        description: 'Key of the experiment to be executed'
+        required: true
+    expectedState:
+        description: 'The expected state of the experiment after attacks started to mark Action successful'
+        required: false
+        default: 'COMPLETED'
+    expectedFailureReason:
+        description: 'The expected failure reason of the experiment to mark Action successful'
+        required: false
+        default: ''
+    parallel:
+        description: 'Whether the experiment should be executed although another one is already running'
+        required: false
+        default: ''
+    maxRetries:
+        description: 'How often the experiment should be retried in case another one is running (only relevant when parallel is set to false)'
+        required: false
+        default: '3'
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+    using: 'node12'
+    main: 'dist/index.js'
