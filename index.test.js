@@ -42,14 +42,15 @@ describe('SteadybitAPI', () => {
     });
 
     it('should await execution state successfully', async () => {
-        httpMock.get.mockResolvedValueOnce({ data: { id: 123, state: 'RUNNING' } });
-        httpMock.get.mockResolvedValueOnce({ data: { id: 123, state: 'COMPLETED', ended: '2021-09-24T12:35:00Z' } });
+        httpMock.get.mockResolvedValueOnce({ status: 503, data: undefined});
+        httpMock.get.mockResolvedValueOnce({ status: 200, data: { id: 123, state: 'RUNNING' } });
+        httpMock.get.mockResolvedValueOnce({ status: 200, data: { id: 123, state: 'COMPLETED', ended: '2021-09-24T12:35:00Z' } });
 
         const result = await api.awaitExecutionState('http://test/api/executions/123', 'COMPLETED');
 
         expect(result).toBe("Execution 123 ended with 'COMPLETED'.");
         expect(httpMock.get).toHaveBeenCalledWith(`http://test/api/executions/123`);
-        expect(httpMock.get).toHaveBeenCalledTimes(2);
+        expect(httpMock.get).toHaveBeenCalledTimes(3);
     });
 
     it('should await execution state unsuccessfully', async () => {
