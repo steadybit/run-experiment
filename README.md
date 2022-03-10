@@ -24,6 +24,10 @@ The expected state of the experiment after attacks started to mark Action succes
 
 The expected failure reason of the experiment to mark Action successful. Default`""`
 
+### `maxRetriesOnExpectationFailure`
+
+An optional of retries to attempt when `expectedState` does not match the actual state. Default `"0"`.
+
 ## Outputs
 
 None for now

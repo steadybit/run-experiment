@@ -27,6 +27,10 @@ inputs:
         description: 'How often the experiment should be retried in case another one is running (only relevant when parallel is set to false)'
         required: false
         default: '3'
+    maxRetriesOnExpectationFailure:
+        description: 'An optional number of retries to attempt when expectedState does not match the actual state'
+        required: false
+        default: '0'
 runs:
     using: 'node12'
     main: 'dist/index.js'

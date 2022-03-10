@@ -6,7 +6,7 @@ async function delay(time, value) {
     });
 }
 
-class SteadybitAPI {
+exports.SteadybitAPI = class SteadybitAPI {
     allowParallelBackoffInterval = 30;
     executionStateQueryInterval = 3;
 
@@ -73,7 +73,3 @@ class SteadybitAPI {
         return error.toString();
     }
 }
-
-module.exports = {
-    SteadybitAPI,
-};
