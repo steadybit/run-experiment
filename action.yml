@@ -31,6 +31,10 @@ inputs:
         description: 'An optional number of retries to attempt when expectedState does not match the actual state'
         required: false
         default: '0'
+    delayBetweenRetriesOnExpectationFailure:
+        description: 'Number of milliseconds to wait between experiment executions when an experiment has to be retried due to expectation failures'
+        required: false
+        default: '60000'
 runs:
     using: 'node16'
     main: 'dist/index.js'

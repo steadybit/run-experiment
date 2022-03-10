@@ -1,10 +1,6 @@
 const axios = require('axios');
 
-async function delay(time, value) {
-    return new Promise((resolve) => {
-        setTimeout(resolve.bind(null, value), time);
-    });
-}
+const { delay } = require('./util');
 
 exports.SteadybitAPI = class SteadybitAPI {
     allowParallelBackoffInterval = 30;
@@ -72,4 +68,4 @@ exports.SteadybitAPI = class SteadybitAPI {
         }
         return error.toString();
     }
-}
+};

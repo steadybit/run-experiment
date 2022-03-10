@@ -5765,6 +5765,7 @@ exports.debug = debug; // for test
 const core = __nccwpck_require__(2186);
 
 const { SteadybitAPI } = __nccwpck_require__(4977);
+const { delay } = __nccwpck_require__(4962);
 
 exports.K = async function run() {
     const baseURL = core.getInput('baseURL');
@@ -5773,6 +5774,7 @@ exports.K = async function run() {
     const parallelExecution = core.getInput('parallel') === 'true';
     const maxRetries = parseInt(core.getInput('maxRetries'));
     const maxRetriesOnExpectationFailure = parseInt(core.getInput('maxRetriesOnExpectationFailure') || 0);
+    const delayBetweenRetriesOnExpectationFailure = parseInt(core.getInput('delayBetweenRetriesOnExpectationFailure') || 0);
     const expectedState = core.getInput('expectedState');
     const expectedFailureReason = core.getInput('expectedFailureReason');
 
@@ -5784,6 +5786,11 @@ exports.K = async function run() {
     for (let attempt = 0; attempt < maximumAttempts && lastResult == null; attempt++) {
         lastResult = null;
         lastError = null;
+
+        if (attempt > 0) {
+            console.log(`Sleeping for ${delayBetweenRetriesOnExpectationFailure}ms before retrying.`);
+            await delay(delayBetweenRetriesOnExpectationFailure);
+        }
 
         try {
             console.log(`Triggering experiment ${experimentKey} for attempt ${attempt + 1}/${maximumAttempts}.`);
@@ -5815,11 +5822,7 @@ exports.K = async function run() {
 
 const axios = __nccwpck_require__(6545);
 
-async function delay(time, value) {
-    return new Promise((resolve) => {
-        setTimeout(resolve.bind(null, value), time);
-    });
-}
+const { delay } = __nccwpck_require__(4962);
 
 exports.SteadybitAPI = class SteadybitAPI {
     allowParallelBackoffInterval = 30;
@@ -5887,8 +5890,19 @@ exports.SteadybitAPI = class SteadybitAPI {
         }
         return error.toString();
     }
-}
+};
 
+
+/***/ }),
+
+/***/ 4962:
+/***/ ((__unused_webpack_module, exports) => {
+
+exports.delay = async function delay(time, value) {
+  return new Promise((resolve) => {
+      setTimeout(resolve.bind(null, value), time);
+  });
+}
 
 /***/ }),
 

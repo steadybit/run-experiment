@@ -28,6 +28,10 @@ The expected failure reason of the experiment to mark Action successful. Default
 
 An optional of retries to attempt when `expectedState` does not match the actual state. Default `"0"`.
 
+### `delayBetweenRetriesOnExpectationFailure`
+
+Number of milliseconds to wait between experiment executions when an experiment has to be retried due to expectation failures. Default `"60000"`.
+
 ## Outputs
 
 None for now
