@@ -12,7 +12,7 @@ exports.run = async function run() {
     const maxRetriesOnExpectationFailure = parseInt(core.getInput('maxRetriesOnExpectationFailure') || 0);
     const delayBetweenRetriesOnExpectationFailure = parseInt(core.getInput('delayBetweenRetriesOnExpectationFailure') || 0);
     const expectedState = core.getInput('expectedState');
-    const expectedFailureReason = core.getInput('expectedFailureReason');
+    const expectedReason = core.getInput('expectedFailureReason') || core.getInput('expectedReason');
 
     const steadybitAPI = new SteadybitAPI(baseURL, apiAccessToken);
 
@@ -30,13 +30,9 @@ exports.run = async function run() {
 
         try {
             console.log(`Triggering experiment ${experimentKey} for attempt ${attempt + 1}/${maximumAttempts}.`);
-            const executionUrl = await steadybitAPI.runExperiment(experimentKey,
-                parallelExecution,
-                maxRetries);
+            const executionUrl = await steadybitAPI.runExperiment(experimentKey, parallelExecution, maxRetries);
             console.log(`Experiment ${experimentKey} is running, checking status...`);
-            lastResult = await steadybitAPI.awaitExecutionState(executionUrl,
-                expectedState,
-                expectedFailureReason);
+            lastResult = await steadybitAPI.awaitExecutionState(executionUrl, expectedState, expectedReason);
         } catch (error) {
             lastError = error;
         }
@@ -47,5 +43,4 @@ exports.run = async function run() {
     } else {
         console.log(`Experiment ${experimentKey} ended. ${lastResult}`);
     }
-}
-
+};

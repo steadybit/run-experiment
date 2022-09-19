@@ -4911,101 +4911,96 @@ RedirectableRequest.prototype._processResponse = function (response) {
   // the user agent MAY automatically redirect its request to the URI
   // referenced by the Location field value,
   // even if the specific status code is not understood.
-
-  // If the response is not a redirect; return it as-is
   var location = response.headers.location;
-  if (!location || this._options.followRedirects === false ||
-      statusCode < 300 || statusCode >= 400) {
+  if (location && this._options.followRedirects !== false &&
+      statusCode >= 300 && statusCode < 400) {
+    // Abort the current request
+    abortRequest(this._currentRequest);
+    // Discard the remainder of the response to avoid waiting for data
+    response.destroy();
+
+    // RFC7231§6.4: A client SHOULD detect and intervene
+    // in cyclical redirections (i.e., "infinite" redirection loops).
+    if (++this._redirectCount > this._options.maxRedirects) {
+      this.emit("error", new TooManyRedirectsError());
+      return;
+    }
+
+    // RFC7231§6.4: Automatic redirection needs to done with
+    // care for methods not known to be safe, […]
+    // RFC7231§6.4.2–3: For historical reasons, a user agent MAY change
+    // the request method from POST to GET for the subsequent request.
+    if ((statusCode === 301 || statusCode === 302) && this._options.method === "POST" ||
+        // RFC7231§6.4.4: The 303 (See Other) status code indicates that
+        // the server is redirecting the user agent to a different resource […]
+        // A user agent can perform a retrieval request targeting that URI
+        // (a GET or HEAD request if using HTTP) […]
+        (statusCode === 303) && !/^(?:GET|HEAD)$/.test(this._options.method)) {
+      this._options.method = "GET";
+      // Drop a possible entity and headers related to it
+      this._requestBodyBuffers = [];
+      removeMatchingHeaders(/^content-/i, this._options.headers);
+    }
+
+    // Drop the Host header, as the redirect might lead to a different host
+    var currentHostHeader = removeMatchingHeaders(/^host$/i, this._options.headers);
+
+    // If the redirect is relative, carry over the host of the last request
+    var currentUrlParts = url.parse(this._currentUrl);
+    var currentHost = currentHostHeader || currentUrlParts.host;
+    var currentUrl = /^\w+:/.test(location) ? this._currentUrl :
+      url.format(Object.assign(currentUrlParts, { host: currentHost }));
+
+    // Determine the URL of the redirection
+    var redirectUrl;
+    try {
+      redirectUrl = url.resolve(currentUrl, location);
+    }
+    catch (cause) {
+      this.emit("error", new RedirectionError(cause));
+      return;
+    }
+
+    // Create the redirected request
+    debug("redirecting to", redirectUrl);
+    this._isRedirect = true;
+    var redirectUrlParts = url.parse(redirectUrl);
+    Object.assign(this._options, redirectUrlParts);
+
+    // Drop the Authorization header if redirecting to another domain
+    if (!(redirectUrlParts.host === currentHost || isSubdomainOf(redirectUrlParts.host, currentHost))) {
+      removeMatchingHeaders(/^authorization$/i, this._options.headers);
+    }
+
+    // Evaluate the beforeRedirect callback
+    if (typeof this._options.beforeRedirect === "function") {
+      var responseDetails = { headers: response.headers };
+      try {
+        this._options.beforeRedirect.call(null, this._options, responseDetails);
+      }
+      catch (err) {
+        this.emit("error", err);
+        return;
+      }
+      this._sanitizeOptions(this._options);
+    }
+
+    // Perform the redirected request
+    try {
+      this._performRequest();
+    }
+    catch (cause) {
+      this.emit("error", new RedirectionError(cause));
+    }
+  }
+  else {
+    // The response is not a redirect; return it as-is
     response.responseUrl = this._currentUrl;
     response.redirects = this._redirects;
     this.emit("response", response);
 
     // Clean up
     this._requestBodyBuffers = [];
-    return;
-  }
-
-  // The response is a redirect, so abort the current request
-  abortRequest(this._currentRequest);
-  // Discard the remainder of the response to avoid waiting for data
-  response.destroy();
-
-  // RFC7231§6.4: A client SHOULD detect and intervene
-  // in cyclical redirections (i.e., "infinite" redirection loops).
-  if (++this._redirectCount > this._options.maxRedirects) {
-    this.emit("error", new TooManyRedirectsError());
-    return;
-  }
-
-  // RFC7231§6.4: Automatic redirection needs to done with
-  // care for methods not known to be safe, […]
-  // RFC7231§6.4.2–3: For historical reasons, a user agent MAY change
-  // the request method from POST to GET for the subsequent request.
-  if ((statusCode === 301 || statusCode === 302) && this._options.method === "POST" ||
-      // RFC7231§6.4.4: The 303 (See Other) status code indicates that
-      // the server is redirecting the user agent to a different resource […]
-      // A user agent can perform a retrieval request targeting that URI
-      // (a GET or HEAD request if using HTTP) […]
-      (statusCode === 303) && !/^(?:GET|HEAD)$/.test(this._options.method)) {
-    this._options.method = "GET";
-    // Drop a possible entity and headers related to it
-    this._requestBodyBuffers = [];
-    removeMatchingHeaders(/^content-/i, this._options.headers);
-  }
-
-  // Drop the Host header, as the redirect might lead to a different host
-  var currentHostHeader = removeMatchingHeaders(/^host$/i, this._options.headers);
-
-  // If the redirect is relative, carry over the host of the last request
-  var currentUrlParts = url.parse(this._currentUrl);
-  var currentHost = currentHostHeader || currentUrlParts.host;
-  var currentUrl = /^\w+:/.test(location) ? this._currentUrl :
-    url.format(Object.assign(currentUrlParts, { host: currentHost }));
-
-  // Determine the URL of the redirection
-  var redirectUrl;
-  try {
-    redirectUrl = url.resolve(currentUrl, location);
-  }
-  catch (cause) {
-    this.emit("error", new RedirectionError(cause));
-    return;
-  }
-
-  // Create the redirected request
-  debug("redirecting to", redirectUrl);
-  this._isRedirect = true;
-  var redirectUrlParts = url.parse(redirectUrl);
-  Object.assign(this._options, redirectUrlParts);
-
-  // Drop confidential headers when redirecting to a less secure protocol
-  // or to a different domain that is not a superdomain
-  if (redirectUrlParts.protocol !== currentUrlParts.protocol &&
-     redirectUrlParts.protocol !== "https:" ||
-     redirectUrlParts.host !== currentHost &&
-     !isSubdomain(redirectUrlParts.host, currentHost)) {
-    removeMatchingHeaders(/^(?:authorization|cookie)$/i, this._options.headers);
-  }
-
-  // Evaluate the beforeRedirect callback
-  if (typeof this._options.beforeRedirect === "function") {
-    var responseDetails = { headers: response.headers };
-    try {
-      this._options.beforeRedirect.call(null, this._options, responseDetails);
-    }
-    catch (err) {
-      this.emit("error", err);
-      return;
-    }
-    this._sanitizeOptions(this._options);
-  }
-
-  // Perform the redirected request
-  try {
-    this._performRequest();
-  }
-  catch (cause) {
-    this.emit("error", new RedirectionError(cause));
   }
 };
 
@@ -5139,7 +5134,7 @@ function abortRequest(request) {
   request.abort();
 }
 
-function isSubdomain(subdomain, domain) {
+function isSubdomainOf(subdomain, domain) {
   const dot = subdomain.length - domain.length - 1;
   return dot > 0 && subdomain[dot] === "." && subdomain.endsWith(domain);
 }
@@ -5776,7 +5771,7 @@ exports.K = async function run() {
     const maxRetriesOnExpectationFailure = parseInt(core.getInput('maxRetriesOnExpectationFailure') || 0);
     const delayBetweenRetriesOnExpectationFailure = parseInt(core.getInput('delayBetweenRetriesOnExpectationFailure') || 0);
     const expectedState = core.getInput('expectedState');
-    const expectedFailureReason = core.getInput('expectedFailureReason');
+    const expectedReason = core.getInput('expectedFailureReason') || core.getInput('expectedReason');
 
     const steadybitAPI = new SteadybitAPI(baseURL, apiAccessToken);
 
@@ -5794,13 +5789,9 @@ exports.K = async function run() {
 
         try {
             console.log(`Triggering experiment ${experimentKey} for attempt ${attempt + 1}/${maximumAttempts}.`);
-            const executionUrl = await steadybitAPI.runExperiment(experimentKey,
-                parallelExecution,
-                maxRetries);
+            const executionUrl = await steadybitAPI.runExperiment(experimentKey, parallelExecution, maxRetries);
             console.log(`Experiment ${experimentKey} is running, checking status...`);
-            lastResult = await steadybitAPI.awaitExecutionState(executionUrl,
-                expectedState,
-                expectedFailureReason);
+            lastResult = await steadybitAPI.awaitExecutionState(executionUrl, expectedState, expectedReason);
         } catch (error) {
             lastError = error;
         }
@@ -5811,8 +5802,7 @@ exports.K = async function run() {
     } else {
         console.log(`Experiment ${experimentKey} ended. ${lastResult}`);
     }
-}
-
+};
 
 
 /***/ }),
@@ -5851,36 +5841,36 @@ exports.SteadybitAPI = class SteadybitAPI {
         }
     }
 
-    async awaitExecutionState(url, expectedState, expectedFailureReason) {
+    async awaitExecutionState(url, expectedState, expectedReason) {
         try {
             const response = await this.http.get(url);
             const execution = response?.data;
             if (execution?.state === expectedState) {
-                return this._executionEndedInExpectedState(execution, expectedFailureReason);
+                return this._executionEndedInExpectedState(execution, expectedReason);
             } else {
-                return this._executionEndedInDifferentState(url, execution, expectedState, expectedFailureReason);
+                return this._executionEndedInDifferentState(url, execution, expectedState, expectedReason);
             }
         } catch (error) {
             throw this._getErrorFromResponse(error);
         }
     }
 
-    async _executionEndedInExpectedState(execution, expectedFailureReason) {
-        if (!expectedFailureReason || expectedFailureReason === execution.failureReason) {
-            return `Execution ${execution.id} ended with '${execution.state}${execution.failureReason ? ` - ${execution.failureReason}` : ''}'.`;
+    async _executionEndedInExpectedState(execution, expectedReason) {
+        const executionReason = execution?.failureReason || execution?.reason;
+        if (!expectedReason || expectedReason === executionReason) {
+            return `Execution ${execution.id} ended with '${execution.state}${executionReason ? ` - ${executionReason}` : ''}'.`;
         } else {
-            throw `Execution ${execution.id} ended with '${execution.state}'. Expected failure reason '${expectedFailureReason}', but was '${execution.failureReason}'`;
+            throw `Execution ${execution.id} ended with '${execution.state}'. Expected failure reason '${expectedReason}', but was '${executionReason}'`;
         }
     }
 
-    async _executionEndedInDifferentState(url, execution, expectedState, expectedFailureReason) {
+    async _executionEndedInDifferentState(url, execution, expectedState, expectedReason) {
+        const executionReason = execution?.failureReason || execution?.reason;
         if (execution && execution.ended) {
-            throw `Execution ${execution.id} ended with '${execution.state}${
-                execution.failureReason ? ` - ${execution.failureReason}` : ''
-            }' but expected '${expectedState}${expectedFailureReason ? ` - ${expectedFailureReason}` : ''}'`;
+            throw `Execution ${execution.id} ended with '${execution.state}${executionReason ? ` - ${executionReason}` : ''}' but expected '${expectedState}${expectedReason ? ` - ${expectedReason}` : ''}'`;
         } else {
             await delay(this.executionStateQueryInterval * 1000);
-            return this.awaitExecutionState(url, expectedState, expectedFailureReason);
+            return this.awaitExecutionState(url, expectedState, expectedReason);
         }
     }
 
@@ -5899,10 +5889,11 @@ exports.SteadybitAPI = class SteadybitAPI {
 /***/ ((__unused_webpack_module, exports) => {
 
 exports.delay = async function delay(time, value) {
-  return new Promise((resolve) => {
-      setTimeout(resolve.bind(null, value), time);
-  });
-}
+    return new Promise((resolve) => {
+        setTimeout(resolve.bind(null, value), time);
+    });
+};
+
 
 /***/ }),
 

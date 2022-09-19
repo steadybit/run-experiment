@@ -29,36 +29,36 @@ exports.SteadybitAPI = class SteadybitAPI {
         }
     }
 
-    async awaitExecutionState(url, expectedState, expectedFailureReason) {
+    async awaitExecutionState(url, expectedState, expectedReason) {
         try {
             const response = await this.http.get(url);
             const execution = response?.data;
             if (execution?.state === expectedState) {
-                return this._executionEndedInExpectedState(execution, expectedFailureReason);
+                return this._executionEndedInExpectedState(execution, expectedReason);
             } else {
-                return this._executionEndedInDifferentState(url, execution, expectedState, expectedFailureReason);
+                return this._executionEndedInDifferentState(url, execution, expectedState, expectedReason);
             }
         } catch (error) {
             throw this._getErrorFromResponse(error);
         }
     }
 
-    async _executionEndedInExpectedState(execution, expectedFailureReason) {
-        if (!expectedFailureReason || expectedFailureReason === execution.failureReason) {
-            return `Execution ${execution.id} ended with '${execution.state}${execution.failureReason ? ` - ${execution.failureReason}` : ''}'.`;
+    async _executionEndedInExpectedState(execution, expectedReason) {
+        const executionReason = execution?.failureReason || execution?.reason;
+        if (!expectedReason || expectedReason === executionReason) {
+            return `Execution ${execution.id} ended with '${execution.state}${executionReason ? ` - ${executionReason}` : ''}'.`;
         } else {
-            throw `Execution ${execution.id} ended with '${execution.state}'. Expected failure reason '${expectedFailureReason}', but was '${execution.failureReason}'`;
+            throw `Execution ${execution.id} ended with '${execution.state}'. Expected failure reason '${expectedReason}', but was '${executionReason}'`;
         }
     }
 
-    async _executionEndedInDifferentState(url, execution, expectedState, expectedFailureReason) {
+    async _executionEndedInDifferentState(url, execution, expectedState, expectedReason) {
+        const executionReason = execution?.failureReason || execution?.reason;
         if (execution && execution.ended) {
-            throw `Execution ${execution.id} ended with '${execution.state}${
-                execution.failureReason ? ` - ${execution.failureReason}` : ''
-            }' but expected '${expectedState}${expectedFailureReason ? ` - ${expectedFailureReason}` : ''}'`;
+            throw `Execution ${execution.id} ended with '${execution.state}${executionReason ? ` - ${executionReason}` : ''}' but expected '${expectedState}${expectedReason ? ` - ${expectedReason}` : ''}'`;
         } else {
             await delay(this.executionStateQueryInterval * 1000);
-            return this.awaitExecutionState(url, expectedState, expectedFailureReason);
+            return this.awaitExecutionState(url, expectedState, expectedReason);
         }
     }
 

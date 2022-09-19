@@ -15,7 +15,12 @@ inputs:
         description: 'The expected state of the experiment after attacks started to mark Action successful'
         required: false
         default: 'COMPLETED'
+    expectedReason:
+        description: 'The expected failure reason of the experiment to mark Action successful'
+        required: false
+        default: ''
     expectedFailureReason:
+        deprecationMessage: 'The parameter has been deprecated. Please use `expectedReason` instead.'
         description: 'The expected failure reason of the experiment to mark Action successful'
         required: false
         default: ''
