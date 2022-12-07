@@ -9,8 +9,11 @@ inputs:
         required: false
         default: 'https://platform.steadybit.io'
     experimentKey:
-        description: 'Key of the experiment to be executed'
-        required: true
+        description: 'Key of the experiment to be executed. Required if you not provide the `externalId` to lookup your experiment.'
+        required: false
+    externalId:
+        description: 'External ID of the experiment to be executed. Alternative to lookup the experiment by `experimentKey`.'
+        required: false
     expectedState:
         description: 'The expected state of the experiment after attacks started to mark Action successful'
         required: false
