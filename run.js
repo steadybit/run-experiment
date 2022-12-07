@@ -6,7 +6,8 @@ const { delay } = require('./util');
 exports.run = async function run() {
     const baseURL = core.getInput('baseURL');
     const apiAccessToken = core.getInput('apiAccessToken');
-    const experimentKey = core.getInput('experimentKey');
+    let experimentKey = core.getInput('experimentKey');
+    const externalId = core.getInput('externalId');
     const parallelExecution = core.getInput('parallel') === 'true';
     const maxRetries = parseInt(core.getInput('maxRetries'));
     const maxRetriesOnExpectationFailure = parseInt(core.getInput('maxRetriesOnExpectationFailure') || 0);
@@ -15,6 +16,10 @@ exports.run = async function run() {
     const expectedReason = core.getInput('expectedFailureReason') || core.getInput('expectedReason');
 
     const steadybitAPI = new SteadybitAPI(baseURL, apiAccessToken);
+
+    if (!experimentKey && externalId) {
+        experimentKey = await steadybitAPI.lookupByExternalId(externalId);
+    }
 
     let lastResult;
     let lastError;

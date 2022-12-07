@@ -29,6 +29,20 @@ exports.SteadybitAPI = class SteadybitAPI {
         }
     }
 
+    async lookupByExternalId(externalId) {
+        try {
+            const response = await this.http.get(`/api/experiments`, { params: { externalId } });
+            const experiments = response?.data.experiments;
+            if (experiments && experiments.length === 1) {
+                return experiments[0].key;
+            } else {
+                throw `Experiment with externalId '${externalId}' could not be found.`;
+            }
+        } catch (error) {
+            throw this._getErrorFromResponse(error);
+        }
+    }
+
     async awaitExecutionState(url, expectedState, expectedReason) {
         try {
             const response = await this.http.get(url);
@@ -55,7 +69,9 @@ exports.SteadybitAPI = class SteadybitAPI {
     async _executionEndedInDifferentState(url, execution, expectedState, expectedReason) {
         const executionReason = execution?.failureReason || execution?.reason;
         if (execution && execution.ended) {
-            throw `Execution ${execution.id} ended with '${execution.state}${executionReason ? ` - ${executionReason}` : ''}' but expected '${expectedState}${expectedReason ? ` - ${expectedReason}` : ''}'`;
+            throw `Execution ${execution.id} ended with '${execution.state}${executionReason ? ` - ${executionReason}` : ''}' but expected '${expectedState}${
+                expectedReason ? ` - ${expectedReason}` : ''
+            }'`;
         } else {
             await delay(this.executionStateQueryInterval * 1000);
             return this.awaitExecutionState(url, expectedState, expectedReason);

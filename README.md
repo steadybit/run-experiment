@@ -14,7 +14,11 @@ Base URL of steadybit. Default`"https://platform.steadybit.io"`
 
 ### `experimentKey`
 
-**Required** Key of the experiment to be executed.
+Key of the experiment to be executed. **Required** if you don't provide the `externalId` to lookup your experiment.
+
+### `externalId`
+
+External ID of the experiment to be executed. Alternative to lookup the experiment by `experimentKey`
 
 ### `expectedState`
 

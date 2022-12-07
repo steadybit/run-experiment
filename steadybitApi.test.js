@@ -22,6 +22,15 @@ describe('SteadybitAPI', () => {
         expect(httpMock.post).toHaveBeenCalledWith(`/api/experiments/EX-1/execute`, null, { params: { allowParallel: 'false' } });
     });
 
+    it('should resolve experiment by externalId', async () => {
+        httpMock.get.mockResolvedValueOnce({ status: 200, data: { experiments: [{ key: 'KEY-1', name: 'Name' }] } });
+
+        const experimentKey = await api.lookupByExternalId('EXTERNAL-ID-1');
+
+        expect(experimentKey).toBe('KEY-1');
+        expect(httpMock.get).toHaveBeenCalledWith('/api/experiments', { params: { externalId: 'EXTERNAL-ID-1' } });
+    });
+
     it('should throw on failed experiment run', async () => {
         httpMock.post.mockRejectedValue({ response: { status: 500, data: { error: 'test error' } } });
 
