@@ -32,6 +32,7 @@ describe('run', () => {
     it('should lookup by external id', async () => {
         // Given
         when(core.getInput).calledWith('externalId').mockReturnValue('EXT-ID');
+        when(core.getInput).calledWith('apiAccessToken').mockReturnValue('token');
         when(mockInstance.lookupByExternalId).calledWith('EXT-ID').mockReturnValue('KEY1');
         mockInstance.runExperiment.mockResolvedValue('https://example.com/api/executions/123');
         mockInstance.awaitExecutionState.mockResolvedValueOnce('great success!');
@@ -47,6 +48,8 @@ describe('run', () => {
 
     it('should retry experiments until they succeed', async () => {
         // Given
+        when(core.getInput).calledWith('apiAccessToken').mockReturnValue('token');
+        when(core.getInput).calledWith('experimentKey').mockReturnValue('KEY-1');
         when(core.getInput).calledWith('maxRetries').mockReturnValue('3');
         when(core.getInput).calledWith('maxRetriesOnExpectationFailure').mockReturnValue('3');
         mockInstance.runExperiment.mockRejectedValueOnce(new Error()).mockResolvedValue('https://example.com/api/executions/123');
@@ -63,6 +66,8 @@ describe('run', () => {
 
     it('should give up retrying eventually', async () => {
         // Given
+        when(core.getInput).calledWith('apiAccessToken').mockReturnValue('token');
+        when(core.getInput).calledWith('experimentKey').mockReturnValue('KEY-1');
         when(core.getInput).calledWith('maxRetries').mockReturnValue('3');
         when(core.getInput).calledWith('maxRetriesOnExpectationFailure').mockReturnValue('3');
         mockInstance.runExperiment.mockRejectedValueOnce(new Error()).mockResolvedValue('https://example.com/api/executions/123');
@@ -77,6 +82,8 @@ describe('run', () => {
 
     it('should not attempt retries', async () => {
         // Given
+        when(core.getInput).calledWith('apiAccessToken').mockReturnValue('token');
+        when(core.getInput).calledWith('experimentKey').mockReturnValue('KEY-1');
         mockInstance.runExperiment.mockResolvedValue('https://example.com/api/executions/123');
         mockInstance.awaitExecutionState.mockRejectedValue(new Error());
 
