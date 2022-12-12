@@ -5780,10 +5780,12 @@ exports.K = async function run() {
     const expectedReason = core.getInput('expectedFailureReason') || core.getInput('expectedReason');
 
     if (!apiAccessToken) {
-        core.error('apiAccessToken not provided.');
+        core.setFailed('apiAccessToken not provided.');
+        return;
     }
     if (!experimentKey && !externalId) {
-        core.error('Neither experimentKey or externalId is provided.');
+        core.setFailed('Neither experimentKey or externalId is provided.');
+        return;
     }
     const steadybitAPI = new SteadybitAPI(baseURL, apiAccessToken);
 
