@@ -15,9 +15,16 @@ exports.run = async function run() {
     const expectedState = core.getInput('expectedState');
     const expectedReason = core.getInput('expectedFailureReason') || core.getInput('expectedReason');
 
+    if (!apiAccessToken) {
+        core.error('apiAccessToken not provided.');
+    }
+    if (!experimentKey && !externalId) {
+        core.error('Neither experimentKey or externalId is provided.');
+    }
     const steadybitAPI = new SteadybitAPI(baseURL, apiAccessToken);
 
     if (!experimentKey && externalId) {
+        core.info(`Lookup Experiment Key for external Id ${externalId}.`);
         experimentKey = await steadybitAPI.lookupByExternalId(externalId);
     }
 
@@ -29,14 +36,14 @@ exports.run = async function run() {
         lastError = null;
 
         if (attempt > 0) {
-            console.log(`Sleeping for ${delayBetweenRetriesOnExpectationFailure}ms before retrying.`);
+            core.info(`Sleeping for ${delayBetweenRetriesOnExpectationFailure}ms before retrying.`);
             await delay(delayBetweenRetriesOnExpectationFailure);
         }
 
         try {
-            console.log(`Triggering experiment ${experimentKey} for attempt ${attempt + 1}/${maximumAttempts}.`);
+            core.info(`Triggering experiment ${experimentKey} for attempt ${attempt + 1}/${maximumAttempts}.`);
             const executionUrl = await steadybitAPI.runExperiment(experimentKey, parallelExecution, maxRetries);
-            console.log(`Experiment ${experimentKey} is running, checking status...`);
+            core.debug(`Experiment ${experimentKey} is running, checking status...`);
             lastResult = await steadybitAPI.awaitExecutionState(executionUrl, expectedState, expectedReason);
         } catch (error) {
             lastError = error;
@@ -46,6 +53,6 @@ exports.run = async function run() {
     if (lastError) {
         core.setFailed(`Experiment ${experimentKey} failed: ${lastError}`);
     } else {
-        console.log(`Experiment ${experimentKey} ended. ${lastResult}`);
+        core.info(`Experiment ${experimentKey} ended. ${lastResult}`);
     }
 };

@@ -1,4 +1,5 @@
 const axios = require('axios');
+const core = require('@actions/core');
 
 const { delay } = require('./util');
 
@@ -20,7 +21,7 @@ exports.SteadybitAPI = class SteadybitAPI {
         } catch (error) {
             const responseBody = error.response?.data;
             if (responseBody?.status === 422 && responseBody?.title.match(/Another.*running/) !== null && retries > 0) {
-                console.log(`Another experiment is running, retrying in ${this.allowParallelBackoffInterval} seconds.`);
+                core.info(`Another experiment is running, retrying in ${this.allowParallelBackoffInterval} seconds.`);
                 await delay(this.allowParallelBackoffInterval * 1000);
                 return this.runExperiment(experimentKey, allowParallel, retries - 1);
             } else {
