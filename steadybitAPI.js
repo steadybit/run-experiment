@@ -1,7 +1,3 @@
-/*
- * Copyright 2023 steadybit GmbH. All rights reserved.
- */
-
 const axios = require('axios');
 const core = require('@actions/core');
 

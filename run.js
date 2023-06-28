@@ -1,7 +1,3 @@
-/*
- * Copyright 2023 steadybit GmbH. All rights reserved.
- */
-
 const core = require('@actions/core');
 
 const { SteadybitAPI } = require('./steadybitAPI');

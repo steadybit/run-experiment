@@ -1,7 +1,3 @@
-/*
- * Copyright 2023 steadybit GmbH. All rights reserved.
- */
-
 jest.mock('./steadybitAPI', () => {
     const mockInstance = {
         runExperiment: jest.fn(),
