@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 steadybit GmbH. All rights reserved.
+ */
+
 const core = require('@actions/core');
 
 const { SteadybitAPI } = require('./steadybitAPI');
@@ -14,6 +18,7 @@ exports.run = async function run() {
     const delayBetweenRetriesOnExpectationFailure = parseInt(core.getInput('delayBetweenRetriesOnExpectationFailure') || 0);
     const expectedState = core.getInput('expectedState');
     const expectedReason = core.getInput('expectedFailureReason') || core.getInput('expectedReason');
+    const getExperimentSummary = (experiment) => `${experiment.key} ("${experiment.name.length > 20 ? `${experiment.name.substring(0, 20)}...` : experiment.name}")`;
 
     if (!apiAccessToken) {
         core.setFailed('apiAccessToken not provided.');
@@ -30,6 +35,8 @@ exports.run = async function run() {
         experimentKey = await steadybitAPI.lookupByExternalId(externalId);
     }
 
+    const experiment = await steadybitAPI.getExperiment(experimentKey);
+
     let lastResult;
     let lastError;
     const maximumAttempts = Math.max(1, maxRetriesOnExpectationFailure);
@@ -43,9 +50,9 @@ exports.run = async function run() {
         }
 
         try {
-            core.info(`Triggering experiment ${experimentKey} for attempt ${attempt + 1}/${maximumAttempts}.`);
+            core.info(`Triggering experiment ${getExperimentSummary(experiment)} for attempt ${attempt + 1}/${maximumAttempts}.`);
             const executionUrl = await steadybitAPI.runExperiment(experimentKey, parallelExecution, maxRetries);
-            core.debug(`Experiment ${experimentKey} is running, checking status...`);
+            core.debug(`Experiment ${getExperimentSummary(experiment)} is running, checking status...`);
             lastResult = await steadybitAPI.awaitExecutionState(executionUrl, expectedState, expectedReason);
         } catch (error) {
             lastError = error;
@@ -53,8 +60,8 @@ exports.run = async function run() {
     }
 
     if (lastError) {
-        core.setFailed(`Experiment ${experimentKey} failed: ${lastError}`);
+        core.setFailed(`Experiment ${getExperimentSummary(experiment)} failed: ${lastError}`);
     } else {
-        core.info(`Experiment ${experimentKey} ended. ${lastResult}`);
+        core.info(`Experiment ${getExperimentSummary(experiment)} ended. ${lastResult}`);
     }
 };

@@ -1,6 +1,11 @@
+/*
+ * Copyright 2023 steadybit GmbH. All rights reserved.
+ */
+
 jest.mock('./steadybitAPI', () => {
     const mockInstance = {
         runExperiment: jest.fn(),
+        getExperiment: jest.fn(),
         lookupByExternalId: jest.fn(),
         awaitExecutionState: jest.fn(),
     };
@@ -23,6 +28,7 @@ const { when } = require('jest-when');
 describe('run', () => {
     beforeEach(() => {
         mockInstance.runExperiment.mockReset();
+        mockInstance.getExperiment.mockReset();
         mockInstance.lookupByExternalId.mockReset();
         mockInstance.awaitExecutionState.mockReset();
         core.setFailed.mockReset();
@@ -35,6 +41,7 @@ describe('run', () => {
         when(core.getInput).calledWith('apiAccessToken').mockReturnValue('token');
         when(mockInstance.lookupByExternalId).calledWith('EXT-ID').mockReturnValue('KEY1');
         mockInstance.runExperiment.mockResolvedValue('https://example.com/api/executions/123');
+        mockInstance.getExperiment.mockResolvedValue({name: 'Experiment from Jest', key: 'KEY1'});
         mockInstance.awaitExecutionState.mockResolvedValueOnce('great success!');
 
         // When
@@ -53,6 +60,7 @@ describe('run', () => {
         when(core.getInput).calledWith('maxRetries').mockReturnValue('3');
         when(core.getInput).calledWith('maxRetriesOnExpectationFailure').mockReturnValue('3');
         mockInstance.runExperiment.mockRejectedValueOnce(new Error()).mockResolvedValue('https://example.com/api/executions/123');
+        mockInstance.getExperiment.mockResolvedValue({name: 'Experiment from Jest', key: 'KEY1'});
         mockInstance.awaitExecutionState.mockRejectedValueOnce(new Error()).mockResolvedValueOnce('great success!');
 
         // When
@@ -71,6 +79,7 @@ describe('run', () => {
         when(core.getInput).calledWith('maxRetries').mockReturnValue('3');
         when(core.getInput).calledWith('maxRetriesOnExpectationFailure').mockReturnValue('3');
         mockInstance.runExperiment.mockRejectedValueOnce(new Error()).mockResolvedValue('https://example.com/api/executions/123');
+        mockInstance.getExperiment.mockResolvedValue({name: 'Experiment from Jest', key: 'KEY1'});
         mockInstance.awaitExecutionState.mockRejectedValue(new Error());
 
         // When
@@ -85,6 +94,7 @@ describe('run', () => {
         when(core.getInput).calledWith('apiAccessToken').mockReturnValue('token');
         when(core.getInput).calledWith('experimentKey').mockReturnValue('KEY-1');
         mockInstance.runExperiment.mockResolvedValue('https://example.com/api/executions/123');
+        mockInstance.getExperiment.mockResolvedValue({name: 'Experiment from Jest', key: 'KEY1'});
         mockInstance.awaitExecutionState.mockRejectedValue(new Error());
 
         // When
