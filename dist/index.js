@@ -1,7 +1,3 @@
-/*
- * Copyright 2023 steadybit GmbH. All rights reserved.
- */
-
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -5766,6 +5762,10 @@ exports.debug = debug; // for test
 /***/ 1499:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+/*
+ * Copyright 2023 steadybit GmbH. All rights reserved.
+ */
+
 const core = __nccwpck_require__(2186);
 
 const { SteadybitAPI } = __nccwpck_require__(4977);
@@ -5835,6 +5835,10 @@ exports.K = async function run() {
 
 /***/ 4977:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+/*
+ * Copyright 2023 steadybit GmbH. All rights reserved.
+ */
 
 const axios = __nccwpck_require__(6545);
 const core = __nccwpck_require__(2186);
