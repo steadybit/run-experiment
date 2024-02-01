@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 steadybit GmbH. All rights reserved.
+ */
+
 const axios = require('axios');
 const core = require('@actions/core');
 
@@ -33,7 +37,7 @@ exports.SteadybitAPI = class SteadybitAPI {
     async getExperiment(experimentKey) {
         try {
             const response = await this.http.get(`/api/experiments/${experimentKey}`);
-            return response?.body;
+            return response.data;
         } catch (error) {
             throw this._getErrorFromResponse(error);
         }

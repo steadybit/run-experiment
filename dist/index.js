@@ -6224,6 +6224,10 @@ exports.K = async function run() {
 /***/ 4977:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+/*
+ * Copyright 2023 steadybit GmbH. All rights reserved.
+ */
+
 const axios = __nccwpck_require__(8757);
 const core = __nccwpck_require__(2186);
 
@@ -6259,7 +6263,7 @@ exports.SteadybitAPI = class SteadybitAPI {
     async getExperiment(experimentKey) {
         try {
             const response = await this.http.get(`/api/experiments/${experimentKey}`);
-            return response?.body;
+            return response.data;
         } catch (error) {
             throw this._getErrorFromResponse(error);
         }
