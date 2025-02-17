@@ -20,7 +20,7 @@ exports.SteadybitAPI = class SteadybitAPI {
 
     async runExperiment(experimentKey, allowParallel = false, retries = 3) {
         try {
-            const response = await this.http.post(`/api/experiments/${experimentKey}/execute`, null, { params: { allowParallel: String(allowParallel) } });
+            const response = await this.http.post(`/api/experiments/${experimentKey}/execute`, null, { params: { allowParallel: String(allowParallel), forcePersist: "true" } });
             return response.headers.location;
         } catch (error) {
             const responseBody = error.response?.data;

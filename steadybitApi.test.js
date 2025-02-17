@@ -19,7 +19,7 @@ describe('SteadybitAPI', () => {
         const url = await api.runExperiment('EX-1');
 
         expect(url).toBe('http://test/api/executions/123');
-        expect(httpMock.post).toHaveBeenCalledWith(`/api/experiments/EX-1/execute`, null, { params: { allowParallel: 'false' } });
+        expect(httpMock.post).toHaveBeenCalledWith(`/api/experiments/EX-1/execute`, null, { params: { allowParallel: 'false', forcePersist: 'true' } });
     });
 
     it('should resolve experiment by externalId', async () => {
@@ -46,7 +46,7 @@ describe('SteadybitAPI', () => {
 
         expect(url).toBe('http://test/api/executions/123');
 
-        expect(httpMock.post).toHaveBeenCalledWith(`/api/experiments/EX-1/execute`, null, { params: { allowParallel: 'false' } });
+        expect(httpMock.post).toHaveBeenCalledWith(`/api/experiments/EX-1/execute`, null, { params: { allowParallel: 'false', forcePersist: 'true' } });
         expect(httpMock.post).toHaveBeenCalledTimes(3);
     });
 
@@ -66,7 +66,7 @@ describe('SteadybitAPI', () => {
         httpMock.get.mockResolvedValue({ data: { id: 123, state: 'FAILED', ended: '2021-09-24T12:35:00Z', reason: 'test' } });
 
         await expect(api.awaitExecutionState('http://test/api/executions/123', 'COMPLETED')).rejects.toBe(
-            "Execution 123 ended with 'FAILED - test' but expected 'COMPLETED'"
+            "Execution 123 ended with 'FAILED - test' but expected 'COMPLETED'",
         );
     });
 });
