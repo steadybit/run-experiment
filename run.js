@@ -14,7 +14,8 @@ exports.run = async function run() {
     const delayBetweenRetriesOnExpectationFailure = parseInt(core.getInput('delayBetweenRetriesOnExpectationFailure') || 0);
     const expectedState = core.getInput('expectedState');
     const expectedReason = core.getInput('expectedFailureReason') || core.getInput('expectedReason');
-    const getExperimentSummary = (experiment) => `${experiment.key} ("${experiment.name.length > 20 ? `${experiment.name.substring(0, 20)}...` : experiment.name}")`;
+    const getExperimentSummary = (experiment) =>
+        `${experiment.key} ("${experiment.name.length > 20 ? `${experiment.name.substring(0, 20)}...` : experiment.name}")`;
 
     if (!apiAccessToken) {
         core.setFailed('apiAccessToken not provided.');
