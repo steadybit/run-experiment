@@ -63,9 +63,10 @@ exports.run = async function run() {
             core.info(`Experiment ${getExperimentSummary(experiment)} ended. ${lastResult}`);
         }
     } catch (error) {
-        console.log('Full error object:', error);
-        console.log('Error type:', typeof error);
-        console.log('Error constructor:', error.constructor.name);
+        core.debug('Full error object:');
+        core.debug(JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        core.debug(`Error type: ${typeof error}`);
+        core.debug(`Error constructor: ${error.constructor.name}`);
         if (error instanceof AggregateError) {
             core.setFailed(`Multiple errors during experiment execution:\n${error.errors.map((e) => e.message).join('\n')}`);
         } else {
