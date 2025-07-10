@@ -29139,6 +29139,7 @@ const { delay } = __nccwpck_require__(642);
 
 exports.e = async function run() {
     try {
+        core.info('Start collecting inputs for Steadybit experiment execution...');
         const baseURL = core.getInput('baseURL');
         const apiAccessToken = core.getInput('apiAccessToken');
         let experimentKey = core.getInput('experimentKey');
@@ -29167,6 +29168,7 @@ exports.e = async function run() {
             experimentKey = await steadybitAPI.lookupByExternalId(externalId);
         }
 
+        core.info('Load experiment details...');
         const experiment = await steadybitAPI.getExperiment(experimentKey);
 
         let lastResult;
@@ -29197,10 +29199,23 @@ exports.e = async function run() {
             core.info(`Experiment ${getExperimentSummary(experiment)} ended. ${lastResult}`);
         }
     } catch (error) {
+        const debugInfo = {
+            type: typeof error,
+            constructor: error.constructor?.name,
+            message: error.message,
+            name: error.name,
+            code: error.code,
+            status: error.status,
+            stack: error.stack,
+            fullError: JSON.stringify(error, Object.getOwnPropertyNames(error), 2),
+        };
+
         if (error instanceof AggregateError) {
-            core.setFailed(`Multiple errors during experiment execution:\n${error.errors.map((e) => e.message).join('\n')}`);
+            core.setFailed(
+                `Multiple errors during experiment execution:\n${error.errors.map((e) => e.message).join('\n')}\n\nDEBUG INFO:\n${JSON.stringify(debugInfo, null, 2)}`,
+            );
         } else {
-            core.setFailed(`Error during experiment execution: ${error.message}`);
+            core.setFailed(`Error during experiment execution: ${error.message}\n\nDEBUG INFO:\n${JSON.stringify(debugInfo, null, 2)}`);
         }
     }
 };
