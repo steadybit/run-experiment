@@ -5,6 +5,7 @@ const { delay } = require('./util');
 
 exports.run = async function run() {
     try {
+        core.info('Start collecting inputs for Steadybit experiment execution...');
         const baseURL = core.getInput('baseURL');
         const apiAccessToken = core.getInput('apiAccessToken');
         let experimentKey = core.getInput('experimentKey');
@@ -33,6 +34,7 @@ exports.run = async function run() {
             experimentKey = await steadybitAPI.lookupByExternalId(externalId);
         }
 
+        core.info('Load experiment details...');
         const experiment = await steadybitAPI.getExperiment(experimentKey);
 
         let lastResult;
