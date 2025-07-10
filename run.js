@@ -71,7 +71,7 @@ exports.run = async function run() {
         core.debug(`Error constructor: ${error.constructor.name}`);
         if (error instanceof AggregateError) {
             core.setFailed(`Multiple errors during experiment execution:\n${error.errors.map((e) => e.message).join('\n')}`);
-        } else if (error instanceof String) {
+        } else if (typeof error === 'string' || error instanceof String) {
             core.setFailed(`Error during experiment execution: ${error}`);
         } else {
             core.setFailed(`Error during experiment execution: ${error.message}`);
