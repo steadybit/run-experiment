@@ -65,23 +65,16 @@ exports.run = async function run() {
             core.info(`Experiment ${getExperimentSummary(experiment)} ended. ${lastResult}`);
         }
     } catch (error) {
-        const debugInfo = {
-            type: typeof error,
-            constructor: error.constructor?.name,
-            message: error.message,
-            name: error.name,
-            code: error.code,
-            status: error.status,
-            stack: error.stack,
-            fullError: JSON.stringify(error, Object.getOwnPropertyNames(error), 2),
-        };
-
+        core.debug('Full error object:');
+        core.debug(JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        core.debug(`Error type: ${typeof error}`);
+        core.debug(`Error constructor: ${error.constructor.name}`);
         if (error instanceof AggregateError) {
-            core.setFailed(
-                `Multiple errors during experiment execution:\n${error.errors.map((e) => e.message).join('\n')}\n\nDEBUG INFO:\n${JSON.stringify(debugInfo, null, 2)}`,
-            );
+            core.setFailed(`Multiple errors during experiment execution:\n${error.errors.map((e) => e.message).join('\n')}`);
+        } else if (error instanceof String) {
+            core.setFailed(`Error during experiment execution: ${error}`);
         } else {
-            core.setFailed(`Error during experiment execution: ${error.message}\n\nDEBUG INFO:\n${JSON.stringify(debugInfo, null, 2)}`);
+            core.setFailed(`Error during experiment execution: ${error.message}`);
         }
     }
 };

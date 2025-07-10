@@ -95,6 +95,7 @@ exports.SteadybitAPI = class SteadybitAPI {
     }
 
     _getErrorFromResponse(error) {
+        core.debug(JSON.stringify(error));
         if (error.response && error.response.data) {
             return error.response.data.title ? error.response.data.title : JSON.stringify(error.response.data);
         }
