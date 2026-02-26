@@ -57,7 +57,7 @@ describe('SteadybitAPI', () => {
 
         const result = await api.awaitExecutionState('http://test/api/executions/123', 'COMPLETED');
 
-        expect(result).toBe("Execution 123 ended with 'COMPLETED'.");
+        expect(result).toEqual({ id: 123, state: 'COMPLETED', reason: undefined });
         expect(httpMock.get).toHaveBeenCalledWith(`http://test/api/executions/123`);
         expect(httpMock.get).toHaveBeenCalledTimes(3);
     });

@@ -38,7 +38,21 @@ Number of milliseconds to wait between experiment executions when an experiment 
 
 ## Outputs
 
-None for now
+### `executionId`
+
+The ID of the experiment execution.
+
+### `executionUrl`
+
+The URL of the experiment execution.
+
+### `executionState`
+
+The final state of the experiment execution (e.g. `COMPLETED`, `FAILED`, `RUNNING`).
+
+### `executionReason`
+
+The reason or failure reason of the experiment execution, if any.
 
 ## Example usage
 

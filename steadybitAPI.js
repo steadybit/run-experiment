@@ -76,7 +76,11 @@ exports.SteadybitAPI = class SteadybitAPI {
     async _executionEndedInExpectedState(execution, expectedReason) {
         const executionReason = execution?.failureReason || execution?.reason;
         if (!expectedReason || expectedReason === executionReason) {
-            return `Execution ${execution.id} ended with '${execution.state}${executionReason ? ` - ${executionReason}` : ''}'.`;
+            return {
+                id: execution.id,
+                state: execution.state,
+                reason: execution.failureReason || execution.reason || undefined,
+            };
         } else {
             throw `Execution ${execution.id} ended with '${execution.state}'. Expected failure reason '${expectedReason}', but was '${executionReason}'`;
         }

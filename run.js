@@ -39,6 +39,7 @@ exports.run = async function run() {
 
         let lastResult;
         let lastError;
+        let lastExecutionUrl;
         const maximumAttempts = Math.max(1, maxRetriesOnExpectationFailure);
         for (let attempt = 0; attempt < maximumAttempts && lastResult == null; attempt++) {
             lastResult = null;
@@ -51,9 +52,9 @@ exports.run = async function run() {
 
             try {
                 core.info(`Triggering experiment ${getExperimentSummary(experiment)} for attempt ${attempt + 1}/${maximumAttempts}.`);
-                const executionUrl = await steadybitAPI.runExperiment(experimentKey, parallelExecution, maxRetries);
+                lastExecutionUrl = await steadybitAPI.runExperiment(experimentKey, parallelExecution, maxRetries);
                 core.debug(`Experiment ${getExperimentSummary(experiment)} is running, checking status...`);
-                lastResult = await steadybitAPI.awaitExecutionState(executionUrl, expectedState, expectedReason);
+                lastResult = await steadybitAPI.awaitExecutionState(lastExecutionUrl, expectedState, expectedReason);
             } catch (error) {
                 lastError = error;
             }
@@ -62,7 +63,15 @@ exports.run = async function run() {
         if (lastError) {
             core.setFailed(`Experiment ${getExperimentSummary(experiment)} failed: ${lastError}`);
         } else {
-            core.info(`Experiment ${getExperimentSummary(experiment)} ended. ${lastResult}`);
+            let reason = '';
+            if (lastResult.reason) {
+                reason = ` - ${lastResult.reason}`;
+                core.setOutput('executionReason', lastResult.reason);
+            }
+            core.info(`Experiment ${getExperimentSummary(experiment)} ended. Execution ${lastResult.id} ended with '${lastResult.state}${reason}'.`);
+            core.setOutput('executionId', lastResult.id);
+            core.setOutput('executionUrl', lastExecutionUrl);
+            core.setOutput('executionState', lastResult.state);
         }
     } catch (error) {
         core.debug('Full error object:');

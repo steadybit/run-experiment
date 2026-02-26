@@ -43,6 +43,15 @@ inputs:
         description: 'Number of milliseconds to wait between experiment executions when an experiment has to be retried due to expectation failures'
         required: false
         default: '60000'
+outputs:
+    executionId:
+        description: 'The ID of the experiment execution'
+    executionUrl:
+        description: 'The URL of the experiment execution'
+    executionState:
+        description: 'The final state of the experiment execution (e.g. COMPLETED, FAILED, RUNNING)'
+    executionReason:
+        description: 'The reason or failure reason of the experiment execution, if any'
 runs:
     using: 'node20'
     main: 'dist/index.js'

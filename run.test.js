@@ -28,6 +28,7 @@ describe('run', () => {
         mockInstance.lookupByExternalId.mockReset();
         mockInstance.awaitExecutionState.mockReset();
         core.setFailed.mockReset();
+        core.setOutput.mockReset();
         core.getInput.mockReset();
     });
 
@@ -38,13 +39,16 @@ describe('run', () => {
         when(mockInstance.lookupByExternalId).calledWith('EXT-ID').mockReturnValue('KEY1');
         mockInstance.runExperiment.mockResolvedValue('https://example.com/api/executions/123');
         mockInstance.getExperiment.mockResolvedValue({ name: 'Experiment from Jest', key: 'KEY1' });
-        mockInstance.awaitExecutionState.mockResolvedValueOnce('great success!');
+        mockInstance.awaitExecutionState.mockResolvedValueOnce({ id: 123, state: 'COMPLETED', reason: undefined });
 
         // When
         await run();
 
         // Then
         expect(core.setFailed).toHaveBeenCalledTimes(0);
+        expect(core.setOutput).toHaveBeenCalledWith('executionId', 123);
+        expect(core.setOutput).toHaveBeenCalledWith('executionUrl', 'https://example.com/api/executions/123');
+        expect(core.setOutput).toHaveBeenCalledWith('executionState', 'COMPLETED');
         expect(mockInstance.runExperiment).toHaveBeenCalledTimes(1);
         expect(mockInstance.awaitExecutionState).toHaveBeenCalledTimes(1);
     });
@@ -57,7 +61,7 @@ describe('run', () => {
         when(core.getInput).calledWith('maxRetriesOnExpectationFailure').mockReturnValue('3');
         mockInstance.runExperiment.mockRejectedValueOnce(new Error()).mockResolvedValue('https://example.com/api/executions/123');
         mockInstance.getExperiment.mockResolvedValue({ name: 'Experiment from Jest', key: 'KEY1' });
-        mockInstance.awaitExecutionState.mockRejectedValueOnce(new Error()).mockResolvedValueOnce('great success!');
+        mockInstance.awaitExecutionState.mockRejectedValueOnce(new Error()).mockResolvedValueOnce({ id: 123, state: 'COMPLETED', reason: undefined });
 
         // When
         await run();
