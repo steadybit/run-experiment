@@ -14,6 +14,8 @@ exports.run = async function run() {
         const maxRetries = parseInt(core.getInput('maxRetries'));
         const maxRetriesOnExpectationFailure = parseInt(core.getInput('maxRetriesOnExpectationFailure') || 0);
         const delayBetweenRetriesOnExpectationFailure = parseInt(core.getInput('delayBetweenRetriesOnExpectationFailure') || 0);
+        const maxRetriesOnValidationFailure = parseInt(core.getInput('maxRetriesOnValidationFailure') || 0);
+        const delayBetweenRetriesOnValidationFailure = parseInt(core.getInput('delayBetweenRetriesOnValidationFailure') || 15);
         const expectedState = core.getInput('expectedState');
         const expectedReason = core.getInput('expectedFailureReason') || core.getInput('expectedReason');
         const getExperimentSummary = (experiment) =>
@@ -52,7 +54,7 @@ exports.run = async function run() {
 
             try {
                 core.info(`Triggering experiment ${getExperimentSummary(experiment)} for attempt ${attempt + 1}/${maximumAttempts}.`);
-                lastExecutionUrl = await steadybitAPI.runExperiment(experimentKey, parallelExecution, maxRetries);
+                lastExecutionUrl = await steadybitAPI.runExperiment(experimentKey, parallelExecution, maxRetries, maxRetriesOnValidationFailure, delayBetweenRetriesOnValidationFailure);
                 core.debug(`Experiment ${getExperimentSummary(experiment)} is running, checking status...`);
                 lastResult = await steadybitAPI.awaitExecutionState(lastExecutionUrl, expectedState, expectedReason);
             } catch (error) {

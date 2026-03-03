@@ -43,6 +43,14 @@ inputs:
         description: 'Number of milliseconds to wait between experiment executions when an experiment has to be retried due to expectation failures'
         required: false
         default: '60000'
+    maxRetriesOnValidationFailure:
+        description: 'Number of retries when the experiment fails validation (e.g., missing targets). 0 means no retry.'
+        required: false
+        default: '0'
+    delayBetweenRetriesOnValidationFailure:
+        description: 'Number of seconds to wait between retries on validation failure'
+        required: false
+        default: '15'
 outputs:
     executionId:
         description: 'The ID of the experiment execution'

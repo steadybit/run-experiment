@@ -18,20 +18,28 @@ exports.SteadybitAPI = class SteadybitAPI {
         });
     }
 
-    async runExperiment(experimentKey, allowParallel = false, retries = 3) {
-        try {
-            const response = await this.http.post(`/api/experiments/${experimentKey}/execute`, null, {
-                params: { allowParallel: String(allowParallel), forcePersist: 'true' },
-            });
-            return response.headers.location;
-        } catch (error) {
-            const responseBody = error.response?.data;
-            if (responseBody?.status === 422 && responseBody?.title.match(/Another.*running/) !== null && retries > 0) {
-                core.info(`Another experiment is running, retrying in ${this.allowParallelBackoffInterval} seconds.`);
-                await delay(this.allowParallelBackoffInterval * 1000);
-                return this.runExperiment(experimentKey, allowParallel, retries - 1);
-            } else {
-                throw this._getErrorFromResponse(error);
+    async runExperiment(experimentKey, allowParallel = false, retries = 3, validationRetries = 0, validationRetryInterval = 15) {
+        const forcePersist = validationRetries > 0 ? 'false' : 'true';
+
+        for (let attempt = 0; attempt <= validationRetries; attempt++) {
+            try {
+                const response = await this.http.post(`/api/experiments/${experimentKey}/execute`, null, {
+                    params: { allowParallel: String(allowParallel), forcePersist },
+                });
+                return response.headers.location;
+            } catch (error) {
+                const responseBody = error.response?.data;
+                if (responseBody?.status === 422 && responseBody?.title.match(/Another.*running/) !== null && retries > 0) {
+                    core.info(`Another experiment is running, retrying in ${this.allowParallelBackoffInterval} seconds.`);
+                    await delay(this.allowParallelBackoffInterval * 1000);
+                    return this.runExperiment(experimentKey, allowParallel, retries - 1, validationRetries, validationRetryInterval);
+                } else if (error.response?.status === 422 && attempt < validationRetries) {
+                    core.info(`Experiment has validation errors (attempt ${attempt + 1}/${validationRetries + 1}). Retrying in ${validationRetryInterval}s...`);
+                    await delay(validationRetryInterval * 1000);
+                    continue;
+                } else {
+                    throw this._getErrorFromResponse(error);
+                }
             }
         }
     }
