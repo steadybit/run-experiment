@@ -42,7 +42,7 @@ exports.run = async function run() {
         let lastResult;
         let lastError;
         let lastExecutionUrl;
-        const maximumAttempts = Math.max(1, maxRetriesOnExpectationFailure);
+        const maximumAttempts = maxRetriesOnExpectationFailure + 1;
         for (let attempt = 0; attempt < maximumAttempts && lastResult == null; attempt++) {
             lastResult = null;
             lastError = null;
