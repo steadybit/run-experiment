@@ -54,7 +54,13 @@ exports.run = async function run() {
 
             try {
                 core.info(`Triggering experiment ${getExperimentSummary(experiment)} for attempt ${attempt + 1}/${maximumAttempts}.`);
-                lastExecutionUrl = await steadybitAPI.runExperiment(experimentKey, parallelExecution, maxRetries, maxRetriesOnValidationFailure, delayBetweenRetriesOnValidationFailure);
+                lastExecutionUrl = await steadybitAPI.runExperiment(
+                    experimentKey,
+                    parallelExecution,
+                    maxRetries,
+                    maxRetriesOnValidationFailure,
+                    delayBetweenRetriesOnValidationFailure,
+                );
                 core.debug(`Experiment ${getExperimentSummary(experiment)} is running, checking status...`);
                 lastResult = await steadybitAPI.awaitExecutionState(lastExecutionUrl, expectedState, expectedReason);
             } catch (error) {
