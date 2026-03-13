@@ -61,5 +61,5 @@ outputs:
     executionReason:
         description: 'The reason or failure reason of the experiment execution, if any'
 runs:
-    using: 'node22'
+    using: 'node24'
     main: 'dist/index.js'
