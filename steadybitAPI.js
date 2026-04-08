@@ -19,9 +19,9 @@ exports.SteadybitAPI = class SteadybitAPI {
     }
 
     async runExperiment(experimentKey, allowParallel = false, retries = 3, validationRetries = 0, validationRetryInterval = 15) {
-        const forcePersist = validationRetries > 0 ? 'false' : 'true';
-
         for (let attempt = 0; attempt <= validationRetries; attempt++) {
+            const isLastAttempt = attempt === validationRetries;
+            const forcePersist = isLastAttempt ? 'true' : 'false';
             try {
                 const response = await this.http.post(`/api/experiments/${experimentKey}/execute`, null, {
                     params: { allowParallel: String(allowParallel), forcePersist },

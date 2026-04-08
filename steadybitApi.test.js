@@ -50,6 +50,30 @@ describe('SteadybitAPI', () => {
         expect(httpMock.post).toHaveBeenCalledTimes(3);
     });
 
+    it('should use forcePersist=false during validation retries and forcePersist=true on last attempt', async () => {
+        httpMock.post.mockRejectedValueOnce({ response: { status: 422, data: { status: 422, title: 'Validation failed' } } });
+        httpMock.post.mockRejectedValueOnce({ response: { status: 422, data: { status: 422, title: 'Validation failed' } } });
+        httpMock.post.mockResolvedValueOnce({ headers: { location: 'http://test/api/executions/123' } });
+
+        const url = await api.runExperiment('EX-1', false, 3, 2, 0.001);
+
+        expect(url).toBe('http://test/api/executions/123');
+        expect(httpMock.post).toHaveBeenCalledTimes(3);
+        expect(httpMock.post).toHaveBeenNthCalledWith(1, '/api/experiments/EX-1/execute', null, { params: { allowParallel: 'false', forcePersist: 'false' } });
+        expect(httpMock.post).toHaveBeenNthCalledWith(2, '/api/experiments/EX-1/execute', null, { params: { allowParallel: 'false', forcePersist: 'false' } });
+        expect(httpMock.post).toHaveBeenNthCalledWith(3, '/api/experiments/EX-1/execute', null, { params: { allowParallel: 'false', forcePersist: 'true' } });
+    });
+
+    it('should use forcePersist=true on last validation retry even if it fails', async () => {
+        httpMock.post.mockRejectedValueOnce({ response: { status: 422, data: { status: 422, title: 'Validation failed' } } });
+        httpMock.post.mockRejectedValueOnce({ response: { status: 422, data: { status: 422, title: 'Validation failed' } } });
+
+        await expect(api.runExperiment('EX-1', false, 3, 1, 0.001)).rejects.toBe('Validation failed');
+        expect(httpMock.post).toHaveBeenCalledTimes(2);
+        expect(httpMock.post).toHaveBeenNthCalledWith(1, '/api/experiments/EX-1/execute', null, { params: { allowParallel: 'false', forcePersist: 'false' } });
+        expect(httpMock.post).toHaveBeenNthCalledWith(2, '/api/experiments/EX-1/execute', null, { params: { allowParallel: 'false', forcePersist: 'true' } });
+    });
+
     it('should await execution state successfully', async () => {
         httpMock.get.mockResolvedValueOnce({ status: 503, data: undefined });
         httpMock.get.mockResolvedValueOnce({ status: 200, data: { id: 123, state: 'RUNNING' } });

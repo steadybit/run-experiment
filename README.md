@@ -36,6 +36,14 @@ An optional of retries to attempt when `expectedState` does not match the actual
 
 Number of milliseconds to wait between experiment executions when an experiment has to be retried due to expectation failures. Default `"60000"`.
 
+### `maxRetriesOnValidationFailure`
+
+Number of retries when the experiment fails validation (e.g., missing targets). On intermediate retries the execution is not persisted (`forcePersist=false`) so you only get validation errors. On the last attempt the execution is always persisted (`forcePersist=true`) so you get a visible execution even if validation still fails. Default `"0"` (no retry).
+
+### `delayBetweenRetriesOnValidationFailure`
+
+Number of seconds to wait between retries on validation failure. Default `"15"`.
+
 ## Outputs
 
 ### `executionId`
