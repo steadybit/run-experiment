@@ -12,7 +12,11 @@ jobs:
         steps:
             - uses: actions/checkout@v6
             - run: npm ci
+            - run: npm run lint
             - run: npm test
+            - run: npm run prepare
+            - name: verify dist/ is up to date
+              run: git diff --exit-code --stat dist/
             - name: '[main] snyk monitor'
               if: github.ref == 'refs/heads/main'
               uses: snyk/actions/node@master
