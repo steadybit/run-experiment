@@ -23,7 +23,7 @@
     "homepage": "https://github.com/steadybit/run-experiment#readme",
     "dependencies": {
         "@actions/core": "^2.0.3",
-        "axios": "^1.17.0"
+        "axios": "^1.18.1"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
