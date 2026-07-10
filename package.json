@@ -32,7 +32,7 @@
         "globals": "^17.7.0",
         "jest": "^30.4.2",
         "jest-when": "^4.0.3",
-        "prettier": "^3.9.4"
+        "prettier": "^3.9.5"
     },
     "jest": {
         "testEnvironment": "jest-environment-node",
