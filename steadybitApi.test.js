@@ -89,8 +89,16 @@ describe('SteadybitAPI', () => {
     it('should await execution state unsuccessfully', async () => {
         httpMock.get.mockResolvedValue({ data: { id: 123, state: 'FAILED', ended: '2021-09-24T12:35:00Z', reason: 'test' } });
 
-        await expect(api.awaitExecutionState('http://test/api/executions/123', 'COMPLETED')).rejects.toBe(
+        await expect(api.awaitExecutionState('http://test/api/executions/123', 'COMPLETED')).rejects.toThrow(
             "Execution 123 ended with 'FAILED - test' but expected 'COMPLETED'",
         );
+    });
+
+    it('should attach the execution to the mismatch error so callers can still report it', async () => {
+        httpMock.get.mockResolvedValue({ data: { id: 123, state: 'FAILED', ended: '2021-09-24T12:35:00Z', reason: 'test' } });
+
+        await expect(api.awaitExecutionState('http://test/api/executions/123', 'COMPLETED')).rejects.toMatchObject({
+            execution: { id: 123, state: 'FAILED', reason: 'test' },
+        });
     });
 });

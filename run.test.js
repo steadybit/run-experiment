@@ -105,4 +105,25 @@ describe('run', () => {
         expect(mockInstance.runExperiment).toHaveBeenCalledTimes(1);
         expect(mockInstance.awaitExecutionState).toHaveBeenCalledTimes(1);
     });
+
+    it('should expose the execution outputs when the experiment fails', async () => {
+        // Given
+        when(core.getInput).calledWith('apiAccessToken').mockReturnValue('token');
+        when(core.getInput).calledWith('experimentKey').mockReturnValue('KEY-1');
+        mockInstance.runExperiment.mockResolvedValue('https://example.com/api/executions/131253');
+        mockInstance.getExperiment.mockResolvedValue({ name: 'Experiment from Jest', key: 'KEY1' });
+        const error = new Error("Execution 131253 ended with 'ERRORED - Failed to prepare.' but expected 'COMPLETED'");
+        error.execution = { id: 131253, state: 'ERRORED', reason: 'Failed to prepare.' };
+        mockInstance.awaitExecutionState.mockRejectedValue(error);
+
+        // When
+        await run();
+
+        // Then
+        expect(core.setFailed).toHaveBeenCalledTimes(1);
+        expect(core.setOutput).toHaveBeenCalledWith('executionId', 131253);
+        expect(core.setOutput).toHaveBeenCalledWith('executionState', 'ERRORED');
+        expect(core.setOutput).toHaveBeenCalledWith('executionReason', 'Failed to prepare.');
+        expect(core.setOutput).toHaveBeenCalledWith('executionUrl', 'https://example.com/api/executions/131253');
+    });
 });

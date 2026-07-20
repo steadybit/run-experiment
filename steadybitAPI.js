@@ -90,20 +90,41 @@ exports.SteadybitAPI = class SteadybitAPI {
                 reason: execution.failureReason || execution.reason || undefined,
             };
         } else {
-            throw `Execution ${execution.id} ended with '${execution.state}'. Expected failure reason '${expectedReason}', but was '${executionReason}'`;
+            throw this._executionMismatchError(
+                `Execution ${execution.id} ended with '${execution.state}'. Expected failure reason '${expectedReason}', but was '${executionReason}'`,
+                execution,
+                executionReason,
+            );
         }
     }
 
     async _executionEndedInDifferentState(url, execution, expectedState, expectedReason) {
         const executionReason = execution?.failureReason || execution?.reason;
         if (execution && execution.ended) {
-            throw `Execution ${execution.id} ended with '${execution.state}${executionReason ? ` - ${executionReason}` : ''}' but expected '${expectedState}${
-                expectedReason ? ` - ${expectedReason}` : ''
-            }'`;
+            throw this._executionMismatchError(
+                `Execution ${execution.id} ended with '${execution.state}${executionReason ? ` - ${executionReason}` : ''}' but expected '${expectedState}${
+                    expectedReason ? ` - ${expectedReason}` : ''
+                }'`,
+                execution,
+                executionReason,
+            );
         } else {
             await delay(this.executionStateQueryInterval * 1000);
             return this.awaitExecutionState(url, expectedState, expectedReason);
         }
+    }
+
+    // A terminated execution that did not match the expectation is a real failure,
+    // but the execution still exists — attach its identity so the caller can still
+    // expose executionId/State/Reason (and thus a link) instead of dropping them.
+    _executionMismatchError(message, execution, executionReason) {
+        const error = new Error(message);
+        error.execution = {
+            id: execution?.id,
+            state: execution?.state,
+            reason: executionReason || undefined,
+        };
+        return error;
     }
 
     _getErrorFromResponse(error) {
