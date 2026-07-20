@@ -69,7 +69,17 @@ exports.run = async function run() {
         }
 
         if (lastError) {
-            core.setFailed(`Experiment ${getExperimentSummary(experiment)} failed: ${lastError}`);
+            // Surface the execution even on failure so consumers can still link to
+            // it and report the state/reason (the outputs were previously only set
+            // on the success path).
+            const failedExecution = lastError && lastError.execution;
+            if (failedExecution) {
+                if (failedExecution.id != null) core.setOutput('executionId', failedExecution.id);
+                if (failedExecution.state) core.setOutput('executionState', failedExecution.state);
+                if (failedExecution.reason) core.setOutput('executionReason', failedExecution.reason);
+            }
+            if (lastExecutionUrl) core.setOutput('executionUrl', lastExecutionUrl);
+            core.setFailed(`Experiment ${getExperimentSummary(experiment)} failed: ${lastError.message || lastError}`);
         } else {
             let reason = '';
             if (lastResult.reason) {
