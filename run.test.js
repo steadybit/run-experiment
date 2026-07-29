@@ -126,4 +126,20 @@ describe('run', () => {
         expect(core.setOutput).toHaveBeenCalledWith('executionReason', 'Failed to prepare.');
         expect(core.setOutput).toHaveBeenCalledWith('executionUrl', 'https://example.com/api/executions/131253');
     });
+
+    it('should record the error message as executionReason when there is no execution', async () => {
+        // Given
+        when(core.getInput).calledWith('apiAccessToken').mockReturnValue('token');
+        when(core.getInput).calledWith('experimentKey').mockReturnValue('KEY-1');
+        mockInstance.runExperiment.mockResolvedValue('https://example.com/api/executions/123');
+        mockInstance.getExperiment.mockResolvedValue({ name: 'Experiment from Jest', key: 'KEY1' });
+        mockInstance.awaitExecutionState.mockRejectedValue('Too Many Requests');
+
+        // When
+        await run();
+
+        // Then
+        expect(core.setFailed).toHaveBeenCalledTimes(1);
+        expect(core.setOutput).toHaveBeenCalledWith('executionReason', 'Too Many Requests');
+    });
 });

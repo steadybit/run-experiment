@@ -79,6 +79,12 @@ exports.run = async function run() {
                 if (failedExecution.reason) core.setOutput('executionReason', failedExecution.reason);
             }
             if (lastExecutionUrl) core.setOutput('executionUrl', lastExecutionUrl);
+            // Always surface a human-readable reason, even when there is no execution
+            // (e.g. the API errored while triggering/polling), so consumers can report
+            // why the run failed rather than showing a blank error.
+            if (!failedExecution || !failedExecution.reason) {
+                core.setOutput('executionReason', lastError.message || String(lastError));
+            }
             core.setFailed(`Experiment ${getExperimentSummary(experiment)} failed: ${lastError.message || lastError}`);
         } else {
             let reason = '';
@@ -96,12 +102,15 @@ exports.run = async function run() {
         core.debug(JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
         core.debug(`Error type: ${typeof error}`);
         core.debug(`Error constructor: ${error.constructor.name}`);
+        let message;
         if (error instanceof AggregateError) {
-            core.setFailed(`Multiple errors during experiment execution:\n${error.errors.map((e) => e.message).join('\n')}`);
+            message = `Multiple errors during experiment execution:\n${error.errors.map((e) => e.message).join('\n')}`;
         } else if (typeof error === 'string' || error instanceof String) {
-            core.setFailed(`Error during experiment execution: ${error}`);
+            message = `Error during experiment execution: ${error}`;
         } else {
-            core.setFailed(`Error during experiment execution: ${error.message}`);
+            message = `Error during experiment execution: ${error.message}`;
         }
+        core.setOutput('executionReason', message);
+        core.setFailed(message);
     }
 };
