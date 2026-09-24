@@ -1,4 +1,7 @@
-jest.mock('./steadybitAPI', () => {
+import { jest } from '@jest/globals';
+import { when } from 'jest-when';
+
+jest.unstable_mockModule('./steadybitAPI.js', () => {
     const mockInstance = {
         runExperiment: jest.fn(),
         getExperiment: jest.fn(),
@@ -14,12 +17,17 @@ jest.mock('./steadybitAPI', () => {
     };
 });
 
-jest.mock('@actions/core');
+jest.unstable_mockModule('@actions/core', () => ({
+    debug: jest.fn(),
+    getInput: jest.fn(),
+    info: jest.fn(),
+    setFailed: jest.fn(),
+    setOutput: jest.fn(),
+}));
 
-const { mockInstance } = require('./steadybitAPI');
-const core = require('@actions/core');
-const { run } = require('./run');
-const { when } = require('jest-when');
+const { mockInstance } = await import('./steadybitAPI.js');
+const core = await import('@actions/core');
+const { run } = await import('./run.js');
 
 describe('run', () => {
     beforeEach(() => {

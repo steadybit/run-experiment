@@ -1,4 +1,6 @@
-const { SteadybitAPI } = require('./steadybitAPI.js');
+import { jest } from '@jest/globals';
+
+import { SteadybitAPI } from './steadybitAPI.js';
 
 describe('SteadybitAPI', () => {
     const httpMock = {

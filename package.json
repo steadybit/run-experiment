@@ -2,11 +2,12 @@
     "name": "run-experiment",
     "version": "1.0.0",
     "description": "Steadybit Run Experiment Action",
-    "main": "index.js",
+    "type": "module",
+    "main": "index.cjs",
     "scripts": {
         "lint": "eslint .",
-        "prepare": "ncc build index.js -o dist --source-map --license licenses.txt ",
-        "test": "jest",
+        "prepare": "ncc build index.cjs -o dist --source-map --license licenses.txt ",
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
         "all": "npm run lint && npm run prepare && npm run test",
         "prettier": "prettier --write ."
     },
@@ -22,11 +23,12 @@
     },
     "homepage": "https://github.com/steadybit/run-experiment#readme",
     "dependencies": {
-        "@actions/core": "^2.0.3",
+        "@actions/core": "^3.0.1",
         "axios": "^1.19.0"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@jest/globals": "^30.5.2",
         "@vercel/ncc": "^0.45.0",
         "eslint": "^10.11.0",
         "globals": "^17.12.0",

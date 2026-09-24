@@ -1,9 +1,9 @@
-const core = require('@actions/core');
+import * as core from '@actions/core';
 
-const { SteadybitAPI } = require('./steadybitAPI');
-const { delay } = require('./util');
+import { SteadybitAPI } from './steadybitAPI.js';
+import { delay } from './util.js';
 
-exports.run = async function run() {
+export async function run() {
     try {
         core.info('Start collecting inputs for Steadybit experiment execution...');
         const baseURL = core.getInput('baseURL');
@@ -113,4 +113,4 @@ exports.run = async function run() {
         core.setOutput('executionReason', message);
         core.setFailed(message);
     }
-};
+}
