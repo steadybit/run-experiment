@@ -2,12 +2,12 @@
  * Copyright 2023 steadybit GmbH. All rights reserved.
  */
 
-const axios = require('axios');
-const core = require('@actions/core');
+import axios from 'axios';
+import * as core from '@actions/core';
 
-const { delay } = require('./util');
+import { delay } from './util.js';
 
-exports.SteadybitAPI = class SteadybitAPI {
+export class SteadybitAPI {
     allowParallelBackoffInterval = 30;
     executionStateQueryInterval = 3;
 
@@ -134,4 +134,4 @@ exports.SteadybitAPI = class SteadybitAPI {
         }
         return error.toString();
     }
-};
+}
