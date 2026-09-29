@@ -45380,6 +45380,11 @@ async function delay(time, value) {
 class SteadybitAPI {
     allowParallelBackoffInterval = 30;
     executionStateQueryInterval = 3;
+    // The platform answers 429 once the tenant's API bucket is drained (shared by
+    // every API client of the tenant). It refills within seconds, so we wait it out
+    // instead of failing an execution that is still running fine.
+    rateLimitMaxRetries = 20;
+    rateLimitDefaultBackoffInterval = 15;
 
     constructor(baseURL, apiAccessToken, httpFactory = lib_axios.create) {
         this.http = httpFactory({
@@ -45393,9 +45398,11 @@ class SteadybitAPI {
             const isLastAttempt = attempt === validationRetries;
             const forcePersist = isLastAttempt ? 'true' : 'false';
             try {
-                const response = await this.http.post(`/api/experiments/${experimentKey}/execute`, null, {
-                    params: { allowParallel: String(allowParallel), forcePersist },
-                });
+                const response = await this._withRateLimitRetry(() =>
+                    this.http.post(`/api/experiments/${experimentKey}/execute`, null, {
+                        params: { allowParallel: String(allowParallel), forcePersist },
+                    }),
+                );
                 return response.headers.location;
             } catch (error) {
                 const responseBody = error.response?.data;
@@ -45416,7 +45423,7 @@ class SteadybitAPI {
 
     async getExperiment(experimentKey) {
         try {
-            const response = await this.http.get(`/api/experiments/${experimentKey}`);
+            const response = await this._withRateLimitRetry(() => this.http.get(`/api/experiments/${experimentKey}`));
             return response.data;
         } catch (error) {
             throw this._getErrorFromResponse(error);
@@ -45425,7 +45432,7 @@ class SteadybitAPI {
 
     async lookupByExternalId(externalId) {
         try {
-            const response = await this.http.get(`/api/experiments`, { params: { externalId } });
+            const response = await this._withRateLimitRetry(() => this.http.get(`/api/experiments`, { params: { externalId } }));
             const experiments = response?.data.experiments;
             if (experiments && experiments.length === 1) {
                 return experiments[0].key;
@@ -45439,7 +45446,7 @@ class SteadybitAPI {
 
     async awaitExecutionState(url, expectedState, expectedReason) {
         try {
-            const response = await this.http.get(url);
+            const response = await this._withRateLimitRetry(() => this.http.get(url));
             const execution = response?.data;
             if (execution?.state === expectedState) {
                 return this._executionEndedInExpectedState(execution, expectedReason);
@@ -45495,6 +45502,27 @@ class SteadybitAPI {
             reason: executionReason || undefined,
         };
         return error;
+    }
+
+    async _withRateLimitRetry(request) {
+        for (let attempt = 0; ; attempt++) {
+            try {
+                return await request();
+            } catch (error) {
+                if (error.response?.status !== 429 || attempt >= this.rateLimitMaxRetries) {
+                    throw error;
+                }
+                const backoff = this._retryAfterSeconds(error.response) ?? this.rateLimitDefaultBackoffInterval;
+                info(`Rate limited by the Steadybit API, retrying in ${backoff} seconds (${attempt + 1}/${this.rateLimitMaxRetries}).`);
+                await delay(backoff * 1000);
+            }
+        }
+    }
+
+    // The platform sends Retry-After as delta-seconds.
+    _retryAfterSeconds(response) {
+        const retryAfter = Number.parseFloat(response.headers?.['retry-after']);
+        return Number.isFinite(retryAfter) && retryAfter >= 0 ? retryAfter : undefined;
     }
 
     _getErrorFromResponse(error) {

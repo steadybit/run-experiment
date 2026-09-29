@@ -10,6 +10,8 @@ describe('SteadybitAPI', () => {
     const api = new SteadybitAPI('http://test', 'XXX', () => httpMock);
     api.allowParallelBackoffInterval = 0.001;
     api.executionStateQueryInterval = 0.001;
+    api.rateLimitDefaultBackoffInterval = 0.001;
+    api.rateLimitMaxRetries = 2;
 
     beforeEach(() => {
         jest.resetAllMocks();
@@ -102,5 +104,33 @@ describe('SteadybitAPI', () => {
         await expect(api.awaitExecutionState('http://test/api/executions/123', 'COMPLETED')).rejects.toMatchObject({
             execution: { id: 123, state: 'FAILED', reason: 'test' },
         });
+    });
+
+    it('should retry the execution state poll when rate limited', async () => {
+        httpMock.get.mockResolvedValueOnce({ status: 200, data: { id: 123, state: 'RUNNING' } });
+        httpMock.get.mockRejectedValueOnce({ response: { status: 429, headers: { 'retry-after': '0.001' }, data: { title: 'Too Many Requests' } } });
+        httpMock.get.mockResolvedValueOnce({ status: 200, data: { id: 123, state: 'COMPLETED', ended: '2021-09-24T12:35:00Z' } });
+
+        const result = await api.awaitExecutionState('http://test/api/executions/123', 'COMPLETED');
+
+        expect(result).toEqual({ id: 123, state: 'COMPLETED', reason: undefined });
+        expect(httpMock.get).toHaveBeenCalledTimes(3);
+    });
+
+    it('should retry triggering the experiment when rate limited', async () => {
+        httpMock.post.mockRejectedValueOnce({ response: { status: 429, headers: {}, data: { title: 'Too Many Requests' } } });
+        httpMock.post.mockResolvedValueOnce({ headers: { location: 'http://test/api/executions/123' } });
+
+        const url = await api.runExperiment('EX-1');
+
+        expect(url).toBe('http://test/api/executions/123');
+        expect(httpMock.post).toHaveBeenCalledTimes(2);
+    });
+
+    it('should give up once the rate limit retries are exhausted', async () => {
+        httpMock.get.mockRejectedValue({ response: { status: 429, headers: {}, data: { title: 'Too Many Requests' } } });
+
+        await expect(api.getExperiment('EX-1')).rejects.toBe('Too Many Requests');
+        expect(httpMock.get).toHaveBeenCalledTimes(3);
     });
 });
