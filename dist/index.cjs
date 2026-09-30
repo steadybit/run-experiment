@@ -33552,6 +33552,7 @@ __nccwpck_require__.r(__webpack_exports__);
 
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
+  DEPRECATION: () => (/* binding */ DEPRECATION),
   run: () => (/* binding */ run)
 });
 
@@ -36409,7 +36410,7 @@ function error(message, properties = {}) {
  * @param properties optional properties to add to the annotation.
  */
 function warning(message, properties = {}) {
-    issueCommand('warning', toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+    command_issueCommand('warning', utils_toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 /**
  * Adds a notice issue
@@ -45540,7 +45541,14 @@ class SteadybitAPI {
 
 
 
+// Shown on every run: the action is deprecated in favor of the Steadybit CLI.
+const DEPRECATION =
+    'steadybit/run-experiment is deprecated. Use the Steadybit CLI instead, which runs experiments the same way ' +
+    'and cancels the attack when the job is canceled: uses: steadybit/cli@v6, then run steadybit experiment run. ' +
+    'Each input of this action has a flag: https://github.com/steadybit/cli#moving-from-steadybitrun-experiment';
+
 async function run() {
+    warning(DEPRECATION);
     try {
         info('Start collecting inputs for Steadybit experiment execution...');
         const baseURL = getInput('baseURL');

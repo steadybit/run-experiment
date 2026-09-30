@@ -3,7 +3,14 @@ import * as core from '@actions/core';
 import { SteadybitAPI } from './steadybitAPI.js';
 import { delay } from './util.js';
 
+// Shown on every run: the action is deprecated in favor of the Steadybit CLI.
+export const DEPRECATION =
+    'steadybit/run-experiment is deprecated. Use the Steadybit CLI instead, which runs experiments the same way ' +
+    'and cancels the attack when the job is canceled: uses: steadybit/cli@v6, then run steadybit experiment run. ' +
+    'Each input of this action has a flag: https://github.com/steadybit/cli#moving-from-steadybitrun-experiment';
+
 export async function run() {
+    core.warning(DEPRECATION);
     try {
         core.info('Start collecting inputs for Steadybit experiment execution...');
         const baseURL = core.getInput('baseURL');
