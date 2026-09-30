@@ -23,13 +23,23 @@ jest.unstable_mockModule('@actions/core', () => ({
     info: jest.fn(),
     setFailed: jest.fn(),
     setOutput: jest.fn(),
+    warning: jest.fn(),
 }));
 
 const { mockInstance } = await import('./steadybitAPI.js');
 const core = await import('@actions/core');
-const { run } = await import('./run.js');
+const { run, DEPRECATION } = await import('./run.js');
 
 describe('run', () => {
+    it('warns that the action is deprecated, pointing to the CLI', async () => {
+        core.warning.mockReset();
+
+        await run();
+
+        expect(core.warning).toHaveBeenCalledWith(DEPRECATION);
+        expect(DEPRECATION).toContain('https://github.com/steadybit/cli#moving-from-steadybitrun-experiment');
+    });
+
     beforeEach(() => {
         mockInstance.runExperiment.mockReset();
         mockInstance.getExperiment.mockReset();

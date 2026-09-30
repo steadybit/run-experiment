@@ -1,5 +1,12 @@
 # Run Experiment action
 
+> [!WARNING]
+> **This action is deprecated.** Use the [Steadybit CLI](https://github.com/steadybit/cli) instead:
+> `uses: steadybit/cli@v6`, then `steadybit experiment run`. It runs experiments the same
+> way, has a flag for each input below, and also cancels the attack when the job is
+> canceled, runs several experiments at once and writes a JUnit report.
+> [How to move a workflow](https://github.com/steadybit/cli#moving-from-steadybitrun-experiment).
+
 Runs an experiment and checks the status of the experiment while executing
 
 ## Inputs
