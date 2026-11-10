@@ -21,11 +21,11 @@ jobs:
             - run: npm run prepare
             - name: verify dist/ is up to date
               run: git diff --exit-code --stat dist/
+            - name: '[main] set up snyk'
+              if: github.ref == 'refs/heads/main'
+              uses: steadybit/extension-kit/.github/actions/setup-snyk@main # NOSONAR githubactions:S7637 - our own action
             - name: '[main] snyk monitor'
               if: github.ref == 'refs/heads/main'
-              uses: snyk/actions/node@master
               env:
                   SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-              with:
-                  args: --prune-repeated-subdependencies --target-reference=${{ github.ref_name }}
-                  command: monitor
+              run: snyk monitor --prune-repeated-subdependencies --target-reference="$GITHUB_REF_NAME"
